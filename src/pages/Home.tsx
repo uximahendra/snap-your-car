@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, Armchair, Plus, Settings, Image as ImageIcon } from "lucide-react";
+import { Car, Gauge, Plus, Settings, Image as ImageIcon } from "lucide-react";
 import { mockSessions, mockUser } from "@/lib/mockData";
 const Home = () => {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ const Home = () => {
             <button onClick={() => navigate("/capture?mode=interior")} className="card-elevated group hover:shadow-lg transition-all interactive-scale">
               <div className="flex flex-col items-center text-center p-4 space-y-3">
                 <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                  <Armchair size={32} className="text-secondary" />
+                  <Gauge size={32} className="text-secondary" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Interior</h3>
