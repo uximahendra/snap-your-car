@@ -10,6 +10,7 @@ import Capture from "./pages/Capture";
 import Processing from "./pages/Processing";
 import Preview from "./pages/Preview";
 import Gallery from "./pages/Gallery";
+import GallerySession from "./pages/GallerySession";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +30,7 @@ const App = () => (
           <Route path="/processing" element={<Processing />} />
           <Route path="/preview" element={<Preview />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/gallery/:id" element={<Gallery />} />
+          <Route path="/gallery/:id" element={<GallerySession />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
