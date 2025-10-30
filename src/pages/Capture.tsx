@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,14 +23,75 @@ const Capture = () => {
   const [flash, setFlash] = useState(false);
   const [captured, setCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string>("");
+  const [cameraError, setCameraError] = useState<string>("");
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const angles = mode === "exterior" ? exteriorAngles : interiorAngles;
 
+  // Initialize camera
+  useEffect(() => {
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: "environment", // Use back camera on mobile
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          },
+          audio: false
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          streamRef.current = stream;
+        }
+      } catch (error) {
+        console.error("Camera access error:", error);
+        setCameraError("Unable to access camera. Please grant camera permissions.");
+        toast.error("Camera access denied");
+      }
+    };
+
+    initCamera();
+
+    // Cleanup
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   const handleCapture = () => {
-    // Mock capture - in real app would use device camera
-    setCapturedImage("https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop");
-    setCaptured(true);
-    toast.success("Photo captured!");
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw video frame to canvas
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to image
+      const imageData = canvas.toDataURL('image/jpeg', 0.9);
+      setCapturedImage(imageData);
+      setCaptured(true);
+      
+      // Stop camera stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      toast.success("Photo captured!");
+    }
   };
 
   const handleEnhance = () => {
@@ -79,7 +140,28 @@ const Capture = () => {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => setCaptured(false)}
+                onClick={async () => {
+                  setCaptured(false);
+                  // Restart camera
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                      video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                      },
+                      audio: false
+                    });
+                    
+                    if (videoRef.current) {
+                      videoRef.current.srcObject = stream;
+                      streamRef.current = stream;
+                    }
+                  } catch (error) {
+                    console.error("Camera access error:", error);
+                    toast.error("Unable to restart camera");
+                  }
+                }}
               >
                 Retake
               </Button>
@@ -117,17 +199,28 @@ const Capture = () => {
       </header>
 
       {/* Camera View */}
-      <div className="flex-1 relative bg-muted">
-        {/* Mock camera preview */}
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700">
-          <div className="text-white/50 text-center">
-            <CameraIcon size={64} className="mx-auto mb-4" />
-            <p className="text-sm">Camera preview</p>
+      <div className="flex-1 relative bg-muted overflow-hidden">
+        {/* Live camera feed */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        
+        {/* Hidden canvas for capture */}
+        <canvas ref={canvasRef} className="hidden" />
+        
+        {/* Error state */}
+        {cameraError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700">
+            <div className="text-white/50 text-center px-4">
+              <CameraIcon size={64} className="mx-auto mb-4" />
+              <p className="text-sm">{cameraError}</p>
+            </div>
           </div>
-
-          {/* Ghost overlay */}
-          <div className="ghost-overlay opacity-30" />
-        </div>
+        )}
 
         {/* Angle rail */}
         <div className="absolute left-4 top-1/2 -translate-y-1/2 space-y-3">
