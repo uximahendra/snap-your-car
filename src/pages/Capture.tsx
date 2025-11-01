@@ -1,71 +1,67 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft,
+  X,
   Camera as CameraIcon,
   Zap,
   ZapOff,
   Upload,
   Sparkles,
   Sun,
+  ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { exteriorAngles, interiorAngles } from "@/lib/mockData";
 import { toast } from "sonner";
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Capacitor } from '@capacitor/core';
+
+interface CapturedAngle {
+  angleId: string;
+  angleLabel: string;
+  imageData: string;
+  timestamp: number;
+}
 
 const Capture = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const mode = searchParams.get("mode") as "exterior" | "interior" || "exterior";
+  const location = useLocation();
+  const mode = location.state?.mode || 'exterior';
+  const existingAngles = (location.state?.capturedAngles || []) as CapturedAngle[];
+  const retakeAngleId = location.state?.retakeAngleId;
+
+  const angles = mode === 'exterior' ? exteriorAngles : interiorAngles;
   
-  const [selectedAngle, setSelectedAngle] = useState(0);
+  const [selectedAngle, setSelectedAngle] = useState(retakeAngleId || angles[0].id);
   const [flash, setFlash] = useState(false);
   const [captured, setCaptured] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string>("");
-  const [cameraError, setCameraError] = useState<string>("");
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [capturedAngles, setCapturedAngles] = useState<CapturedAngle[]>(existingAngles);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  const angles = mode === "exterior" ? exteriorAngles : interiorAngles;
-
-  // Initialize camera
+  // Initialize camera - Use HTML5 camera for ALL platforms
   useEffect(() => {
     const initCamera = async () => {
-      // Skip camera initialization for native platforms - we'll use Capacitor Camera API
-      if (Capacitor.isNativePlatform()) {
-        try {
-          // Request camera permissions on native
-          await Camera.requestPermissions();
-        } catch (error) {
-          console.error("Camera permission error:", error);
-          setCameraError("Camera permission denied. Please enable camera access in your device settings.");
-          toast.error("Camera permission denied");
-        }
-        return;
-      }
-
-      // Web browser camera initialization
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
-            facingMode: "environment", // Use back camera on mobile
+            facingMode: "environment",
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           },
-          audio: false
         });
-        
+
+        streamRef.current = stream;
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          streamRef.current = stream;
         }
       } catch (error) {
-        console.error("Camera access error:", error);
+        console.error("Camera error:", error);
         setCameraError("Unable to access camera. Please grant camera permissions.");
         toast.error("Camera access denied");
       }
@@ -73,58 +69,30 @@ const Capture = () => {
 
     initCamera();
 
-    // Cleanup
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
 
-  const handleCapture = async () => {
-    // Use Capacitor Camera API for native platforms
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const photo = await Camera.getPhoto({
-          quality: 90,
-          allowEditing: false,
-          resultType: CameraResultType.DataUrl,
-          source: CameraSource.Camera
-        });
-
-        if (photo.dataUrl) {
-          setCapturedImage(photo.dataUrl);
-          setCaptured(true);
-          toast.success("Photo captured!");
-        }
-      } catch (error) {
-        console.error("Camera capture error:", error);
-        toast.error("Failed to capture photo");
-      }
-      return;
-    }
-
-    // Web browser camera capture
+  const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     
-    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Draw video frame to canvas
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Convert canvas to image
       const imageData = canvas.toDataURL('image/jpeg', 0.9);
       setCapturedImage(imageData);
       setCaptured(true);
       
-      // Stop camera stream
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -133,8 +101,51 @@ const Capture = () => {
     }
   };
 
-  const handleEnhance = () => {
-    navigate("/processing");
+  const handleNextAngle = () => {
+    if (!capturedImage) return;
+
+    const currentAngle = angles.find(a => a.id === selectedAngle);
+    if (!currentAngle) return;
+
+    const newCapturedAngle: CapturedAngle = {
+      angleId: selectedAngle,
+      angleLabel: currentAngle.label,
+      imageData: capturedImage,
+      timestamp: Date.now()
+    };
+
+    const updatedAngles = retakeAngleId
+      ? capturedAngles.map(a => a.angleId === retakeAngleId ? newCapturedAngle : a)
+      : [...capturedAngles, newCapturedAngle];
+
+    setCapturedAngles(updatedAngles);
+
+    // Find next uncaptured angle
+    const capturedIds = new Set(updatedAngles.map(a => a.angleId));
+    const nextAngle = angles.find(a => !capturedIds.has(a.id));
+
+    if (nextAngle) {
+      setSelectedAngle(nextAngle.id);
+      setCaptured(false);
+      setCapturedImage(null);
+      toast.success(`${updatedAngles.length} of ${angles.length} captured!`);
+    } else {
+      navigate('/angle-review', {
+        state: {
+          capturedAngles: updatedAngles,
+          mode
+        }
+      });
+    }
+  };
+
+  const handleReviewAll = () => {
+    navigate('/angle-review', {
+      state: {
+        capturedAngles,
+        mode
+      }
+    });
   };
 
   if (captured) {
@@ -145,7 +156,10 @@ const Capture = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCaptured(false)}
+              onClick={() => {
+                setCaptured(false);
+                setCapturedImage(null);
+              }}
             >
               <ArrowLeft size={20} />
             </Button>
@@ -169,43 +183,19 @@ const Capture = () => {
             <Button
               size="lg"
               className="w-full"
-              onClick={handleEnhance}
+              onClick={handleNextAngle}
             >
               <Sparkles className="mr-2" />
-              Enhance Now
+              {capturedAngles.length + 1 < angles.length ? 'Next Angle' : 'Review All'}
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="outline"
                 size="lg"
-                onClick={async () => {
+                onClick={() => {
                   setCaptured(false);
-                  
-                  // For native platforms, just call handleCapture again
-                  if (Capacitor.isNativePlatform()) {
-                    return;
-                  }
-                  
-                  // Restart web camera
-                  try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                      video: { 
-                        facingMode: "environment",
-                        width: { ideal: 1920 },
-                        height: { ideal: 1080 }
-                      },
-                      audio: false
-                    });
-                    
-                    if (videoRef.current) {
-                      videoRef.current.srcObject = stream;
-                      streamRef.current = stream;
-                    }
-                  } catch (error) {
-                    console.error("Camera access error:", error);
-                    toast.error("Unable to restart camera");
-                  }
+                  setCapturedImage(null);
                 }}
               >
                 Retake
@@ -213,9 +203,10 @@ const Capture = () => {
               <Button
                 variant="outline"
                 size="lg"
-                onClick={() => toast.success("Saved to drafts")}
+                onClick={handleReviewAll}
+                disabled={capturedAngles.length === 0}
               >
-                Use Photo
+                Review All {capturedAngles.length}
               </Button>
             </div>
           </div>
@@ -225,73 +216,109 @@ const Capture = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b border-border p-4">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/home")}
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <Badge variant="secondary" className="capitalize">
-            {mode}
-          </Badge>
-          <div className="w-8" />
-        </div>
-      </header>
-
-      {/* Camera View */}
-      <div className="flex-1 relative bg-muted overflow-hidden">
-        {/* Live camera feed */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        
-        {/* Hidden canvas for capture */}
-        <canvas ref={canvasRef} className="hidden" />
-        
-        {/* Error state */}
-        {cameraError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700">
-            <div className="text-white/50 text-center px-4">
-              <CameraIcon size={64} className="mx-auto mb-4" />
-              <p className="text-sm">{cameraError}</p>
-            </div>
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+      {/* Live camera feed */}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      
+      {/* Hidden canvas for capture */}
+      <canvas ref={canvasRef} className="hidden" />
+      
+      {/* Error state */}
+      {cameraError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700 z-20">
+          <div className="text-white/50 text-center px-4">
+            <CameraIcon size={64} className="mx-auto mb-4" />
+            <p className="text-sm">{cameraError}</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Angle rail */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 space-y-3">
-          {angles.map((angle, index) => (
-            <button
-              key={angle.id}
-              onClick={() => setSelectedAngle(index)}
-              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all interactive-scale ${
-                selectedAngle === index
-                  ? "bg-primary border-primary shadow-cta"
-                  : "bg-card/80 border-white/30 backdrop-blur-sm"
-              }`}
+      {/* Camera UI Overlay */}
+      <div className="absolute inset-0 z-10">
+        {/* Header */}
+        <header className="absolute top-0 left-0 right-0 z-10 p-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+              onClick={() => navigate("/home")}
             >
-              <span className={`text-xs font-bold ${
-                selectedAngle === index ? "text-white" : "text-foreground"
-              }`}>
-                {index + 1}
-              </span>
-            </button>
-          ))}
+              <X size={20} />
+            </Button>
+            <div className="bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+              {angles.find((a) => a.id === selectedAngle)?.label}
+              <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                {capturedAngles.length}/{angles.length}
+              </Badge>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+              onClick={() => setFlash(!flash)}
+            >
+              {flash ? <Zap size={20} /> : <ZapOff size={20} />}
+            </Button>
+          </div>
+        </header>
+
+        {/* Center guide frame */}
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="w-full max-w-md aspect-[4/3] border-2 border-white/50 rounded-2xl relative">
+            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-2xl" />
+            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-2xl" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-2xl" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-2xl" />
+          </div>
         </div>
 
         {/* Hint */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs">
           <Sun size={14} className="inline mr-1" />
           Hold 2–3m away. Avoid direct sunlight
+        </div>
+
+        {/* Angle selector */}
+        <div className="absolute bottom-32 left-0 right-0 px-4">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {angles.map((angle) => {
+              const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
+              return (
+                <Button
+                  key={angle.id}
+                  variant={selectedAngle === angle.id ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => setSelectedAngle(angle.id)}
+                  className="flex-shrink-0 text-xs relative"
+                >
+                  <angle.icon className="w-3.5 h-3.5 mr-1" />
+                  {angle.label}
+                  {isCaptured && (
+                    <CheckCircle2 className="ml-1 text-success w-3 h-3" />
+                  )}
+                </Button>
+              );
+            })}
+          </div>
+          {capturedAngles.length > 0 && (
+            <div className="text-center mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReviewAll}
+                className="bg-white/90 hover:bg-white"
+              >
+                Review All {capturedAngles.length}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Controls */}
@@ -316,17 +343,13 @@ const Capture = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="text-white"
-              onClick={() => setFlash(!flash)}
+              className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
+              onClick={handleReviewAll}
+              disabled={capturedAngles.length === 0}
             >
-              {flash ? <Zap size={24} /> : <ZapOff size={24} />}
+              <span className="text-sm font-bold">{capturedAngles.length}</span>
             </Button>
           </div>
-        </div>
-
-        {/* Angle label */}
-        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-xl">
-          <p className="text-sm font-medium">{angles[selectedAngle].label}</p>
         </div>
       </div>
     </div>

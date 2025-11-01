@@ -8,7 +8,8 @@ import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import Capture from "./pages/Capture";
 import Processing from "./pages/Processing";
-import Preview from "./pages/Preview";
+import AngleReview from "./pages/AngleReview";
+import EnhanceMulti from "./pages/EnhanceMulti";
 import Gallery from "./pages/Gallery";
 import GallerySession from "./pages/GallerySession";
 import Settings from "./pages/Settings";
@@ -27,8 +28,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/home" element={<Home />} />
           <Route path="/capture" element={<Capture />} />
+          <Route path="/angle-review" element={<AngleReview />} />
           <Route path="/processing" element={<Processing />} />
-          <Route path="/preview" element={<Preview />} />
+          <Route path="/enhance-multi" element={<EnhanceMulti />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/gallery/:id" element={<GallerySession />} />
           <Route path="/settings" element={<Settings />} />

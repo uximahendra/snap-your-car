@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Grid3x3, List, Download, Trash2, Eye } from "lucide-react";
 import { mockSessions } from "@/lib/mockData";
+import { getAllSessionsFromLocalStorage } from "@/lib/storage";
 
 const Gallery = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [localSessions, setLocalSessions] = useState(mockSessions);
+
+  useEffect(() => {
+    const saved = getAllSessionsFromLocalStorage();
+    setLocalSessions([...saved, ...mockSessions]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -43,7 +50,7 @@ const Gallery = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            {mockSessions.length} sessions • {mockSessions.reduce((acc, s) => acc + s.images.length, 0)} photos
+            {localSessions.length} sessions • {localSessions.reduce((acc, s) => acc + s.images.length, 0)} photos
           </p>
         </div>
       </header>
@@ -51,7 +58,7 @@ const Gallery = () => {
       <div className="max-w-2xl mx-auto px-4 py-6">
         {viewMode === "grid" ? (
           <div className="grid grid-cols-2 gap-3">
-            {mockSessions.map((session) => (
+            {localSessions.map((session) => (
               <button
                 key={session.id}
                 onClick={() => navigate(`/gallery/${session.id}`)}
@@ -91,7 +98,7 @@ const Gallery = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {mockSessions.map((session) => (
+            {localSessions.map((session) => (
               <div key={session.id} className="card-elevated p-4">
                 <div className="flex gap-4">
                   <div className="w-24 h-24 bg-muted rounded-xl overflow-hidden flex-shrink-0">
