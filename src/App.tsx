@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Capture from "./pages/Capture";
 import Processing from "./pages/Processing";
 import AngleReview from "./pages/AngleReview";
+import View360 from "./pages/View360";
 import EnhanceMulti from "./pages/EnhanceMulti";
 import Gallery from "./pages/Gallery";
 import GallerySession from "./pages/GallerySession";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/capture" element={<Capture />} />
           <Route path="/angle-review" element={<AngleReview />} />
+          <Route path="/view-360" element={<View360 />} />
           <Route path="/processing" element={<Processing />} />
           <Route path="/enhance-multi" element={<EnhanceMulti />} />
           <Route path="/gallery" element={<Gallery />} />

@@ -49,12 +49,19 @@ const Capture = () => {
   useEffect(() => {
     const initCamera = async () => {
       try {
+        console.log("🎥 Initializing camera...");
+        
         // Request camera permission on native platforms
         if (Capacitor.isNativePlatform()) {
+          console.log("📱 Native platform detected, checking permissions...");
+          
           const permissionResult = await Camera.checkPermissions();
+          console.log("Permission status:", permissionResult);
           
           if (permissionResult.camera === 'denied') {
+            console.log("Requesting camera permission...");
             const requestResult = await Camera.requestPermissions({ permissions: ['camera'] });
+            console.log("Permission request result:", requestResult);
             
             if (requestResult.camera === 'denied') {
               setCameraError("Camera permission denied. Please enable camera access in your phone's settings.");
@@ -62,8 +69,11 @@ const Capture = () => {
               return;
             }
           }
+          
+          console.log("✅ Camera permission granted");
         }
 
+        console.log("Starting getUserMedia...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
             facingMode: "environment",
@@ -72,15 +82,34 @@ const Capture = () => {
           },
         });
 
+        console.log("✅ Camera stream obtained successfully");
         streamRef.current = stream;
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          console.log("✅ Video stream set to video element");
         }
-      } catch (error) {
-        console.error("Camera error:", error);
-        setCameraError("Unable to access camera. Please grant camera permissions.");
-        toast.error("Camera access denied");
+      } catch (error: any) {
+        console.error("❌ Camera error:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
+        let errorMessage = "Unable to access camera. ";
+        
+        if (error.name === 'NotAllowedError') {
+          errorMessage += "Permission denied. Please allow camera access.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage += "No camera found on this device.";
+        } else if (error.name === 'NotReadableError') {
+          errorMessage += "Camera is already in use by another app.";
+        } else {
+          errorMessage += error.message;
+        }
+        
+        setCameraError(errorMessage);
+        toast.error("Camera failed to start");
       }
     };
 
@@ -307,15 +336,23 @@ const Capture = () => {
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {angles.map((angle) => {
               const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
+              const angleData = angle as any;
               return (
                 <Button
                   key={angle.id}
                   variant={selectedAngle === angle.id ? "default" : "secondary"}
                   size="sm"
                   onClick={() => setSelectedAngle(angle.id)}
-                  className="flex-shrink-0 text-xs relative"
+                  className="flex-shrink-0 text-xs relative flex items-center gap-1.5"
                 >
-                  {angle.label}
+                  {angleData.previewImage && (
+                    <img 
+                      src={angleData.previewImage} 
+                      alt={angle.label}
+                      className="w-8 h-6 opacity-70"
+                    />
+                  )}
+                  <span className="whitespace-nowrap">{angle.label}</span>
                   {isCaptured && (
                     <CheckCircle2 className="ml-1 text-success w-3 h-3" />
                   )}

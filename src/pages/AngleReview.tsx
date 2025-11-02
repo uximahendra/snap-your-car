@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle2, Camera, Sparkles } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Camera, Sparkles, RotateCw } from "lucide-react";
 
 interface CapturedAngle {
   angleId: string;
@@ -133,6 +133,18 @@ const AngleReview = () => {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
+          {capturedAngles.length === 7 && (
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate('/view-360', { state: { capturedAngles, mode } })}
+            >
+              <RotateCw className="mr-2" />
+              View 360°
+            </Button>
+          )}
+          
           <Button
             size="lg"
             className="w-full"

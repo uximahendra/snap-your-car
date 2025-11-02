@@ -27,13 +27,13 @@ export interface CarSession {
 }
 
 export const exteriorAngles = [
-  { id: "front", label: "Front", icon: "circle" },
-  { id: "front-left", label: "3/4 Front Left", icon: "circle" },
-  { id: "left", label: "Left Side", icon: "circle" },
-  { id: "rear-left", label: "Rear Left", icon: "circle" },
-  { id: "rear", label: "Rear", icon: "circle" },
-  { id: "rear-right", label: "Rear Right", icon: "circle" },
-  { id: "front-right", label: "Front Right", icon: "circle" },
+  { id: "front", label: "Front", icon: "circle", previewImage: "/car-angles/front.svg" },
+  { id: "front-left", label: "3/4 Front Left", icon: "circle", previewImage: "/car-angles/front-left.svg" },
+  { id: "left", label: "Left Side", icon: "circle", previewImage: "/car-angles/left.svg" },
+  { id: "rear-left", label: "Rear Left", icon: "circle", previewImage: "/car-angles/rear-left.svg" },
+  { id: "rear", label: "Rear", icon: "circle", previewImage: "/car-angles/rear.svg" },
+  { id: "rear-right", label: "Rear Right", icon: "circle", previewImage: "/car-angles/rear-right.svg" },
+  { id: "front-right", label: "Front Right", icon: "circle", previewImage: "/car-angles/front-right.svg" },
 ];
 
 export const interiorAngles = [
