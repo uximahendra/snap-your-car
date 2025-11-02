@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { exteriorAngles, interiorAngles } from "@/lib/mockData";
 import { toast } from "sonner";
+import { Camera } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 interface CapturedAngle {
   angleId: string;
@@ -47,6 +49,21 @@ const Capture = () => {
   useEffect(() => {
     const initCamera = async () => {
       try {
+        // Request camera permission on native platforms
+        if (Capacitor.isNativePlatform()) {
+          const permissionResult = await Camera.checkPermissions();
+          
+          if (permissionResult.camera === 'denied') {
+            const requestResult = await Camera.requestPermissions({ permissions: ['camera'] });
+            
+            if (requestResult.camera === 'denied') {
+              setCameraError("Camera permission denied. Please enable camera access in your phone's settings.");
+              toast.error("Camera access denied");
+              return;
+            }
+          }
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { 
             facingMode: "environment",
@@ -298,7 +315,6 @@ const Capture = () => {
                   onClick={() => setSelectedAngle(angle.id)}
                   className="flex-shrink-0 text-xs relative"
                 >
-                  <angle.icon className="w-3.5 h-3.5 mr-1" />
                   {angle.label}
                   {isCaptured && (
                     <CheckCircle2 className="ml-1 text-success w-3 h-3" />
