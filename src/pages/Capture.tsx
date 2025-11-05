@@ -46,84 +46,92 @@ const Capture = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Initialize camera - Use HTML5 camera for ALL platforms
-  useEffect(() => {
-    const initCamera = async () => {
-      try {
-        console.log("🎥 Initializing camera...");
-        
-        // Lock to landscape orientation
-        if (Capacitor.isNativePlatform()) {
-          try {
-            await ScreenOrientation.lock({ orientation: 'landscape' });
-            console.log("✅ Screen locked to landscape");
-          } catch (error) {
-            console.warn("Could not lock orientation:", error);
-          }
-        }
-        
-        // Request camera permission on native platforms
-        if (Capacitor.isNativePlatform()) {
-          console.log("📱 Native platform detected, checking permissions...");
-          
-          const permissionResult = await Camera.checkPermissions();
-          console.log("Permission status:", permissionResult);
-          
-          if (permissionResult.camera === 'denied') {
-            console.log("Requesting camera permission...");
-            const requestResult = await Camera.requestPermissions({ permissions: ['camera'] });
-            console.log("Permission request result:", requestResult);
-            
-            if (requestResult.camera === 'denied') {
-              setCameraError("Camera permission denied. Please enable camera access in your phone's settings.");
-              toast.error("Camera access denied");
-              return;
-            }
-          }
-          
-          console.log("✅ Camera permission granted");
-        }
-
-        console.log("Starting getUserMedia...");
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            facingMode: "environment",
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
-        });
-
-        console.log("✅ Camera stream obtained successfully");
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          console.log("✅ Video stream set to video element");
-        }
-      } catch (error: any) {
-        console.error("❌ Camera error:", {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        });
-        
-        let errorMessage = "Unable to access camera. ";
-        
-        if (error.name === 'NotAllowedError') {
-          errorMessage += "Permission denied. Please allow camera access.";
-        } else if (error.name === 'NotFoundError') {
-          errorMessage += "No camera found on this device.";
-        } else if (error.name === 'NotReadableError') {
-          errorMessage += "Camera is already in use by another app.";
-        } else {
-          errorMessage += error.message;
-        }
-        
-        setCameraError(errorMessage);
-        toast.error("Camera failed to start");
+  // Initialize camera function (reusable)
+  const initCamera = async () => {
+    try {
+      console.log("🎥 Initializing camera...");
+      
+      // Stop existing stream if any
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
-    };
+      
+      // Lock to landscape orientation
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await ScreenOrientation.lock({ orientation: 'landscape' });
+          console.log("✅ Screen locked to landscape");
+        } catch (error) {
+          console.warn("Could not lock orientation:", error);
+        }
+      }
+      
+      // Request camera permission on native platforms
+      if (Capacitor.isNativePlatform()) {
+        console.log("📱 Native platform detected, checking permissions...");
+        
+        const permissionResult = await Camera.checkPermissions();
+        console.log("Permission status:", permissionResult);
+        
+        if (permissionResult.camera === 'denied') {
+          console.log("Requesting camera permission...");
+          const requestResult = await Camera.requestPermissions({ permissions: ['camera'] });
+          console.log("Permission request result:", requestResult);
+          
+          if (requestResult.camera === 'denied') {
+            setCameraError("Camera permission denied. Please enable camera access in your phone's settings.");
+            toast.error("Camera access denied");
+            return;
+          }
+        }
+        
+        console.log("✅ Camera permission granted");
+      }
 
+      console.log("Starting getUserMedia...");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        },
+      });
+
+      console.log("✅ Camera stream obtained successfully");
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        console.log("✅ Video stream set to video element");
+      }
+      
+      setCameraError(null);
+    } catch (error: any) {
+      console.error("❌ Camera error:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      let errorMessage = "Unable to access camera. ";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += "Permission denied. Please allow camera access.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += "No camera found on this device.";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += "Camera is already in use by another app.";
+      } else {
+        errorMessage += error.message;
+      }
+      
+      setCameraError(errorMessage);
+      toast.error("Camera failed to start");
+    }
+  };
+
+  // Initialize camera on mount
+  useEffect(() => {
     initCamera();
 
     return () => {
@@ -190,6 +198,7 @@ const Capture = () => {
       setSelectedAngle(nextAngle.id);
       setCaptured(false);
       setCapturedImage(null);
+      initCamera();
       toast.success(`${updatedAngles.length} of ${angles.length} captured!`);
     } else {
       navigate('/angle-review', {
@@ -258,6 +267,7 @@ const Capture = () => {
                 onClick={() => {
                   setCaptured(false);
                   setCapturedImage(null);
+                  initCamera();
                 }}
               >
                 Retake
