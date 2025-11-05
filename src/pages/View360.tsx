@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Sparkles, RotateCw } from "lucide-react";
@@ -20,6 +22,18 @@ const View360 = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
+      }
+    };
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Sort angles in logical order for 360 rotation

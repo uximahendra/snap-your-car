@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Sparkles, Loader2, CheckCircle2 } from "lucide-react";
@@ -28,6 +30,18 @@ const Processing = () => {
   const [currentAngleIndex, setCurrentAngleIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [enhancedImages, setEnhancedImages] = useState<EnhancedAngle[]>([]);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (currentAngleIndex >= capturedAngles.length) {
