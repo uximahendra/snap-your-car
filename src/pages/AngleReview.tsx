@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, Camera, Sparkles, RotateCw } from "lucide-react";
@@ -15,6 +18,18 @@ const AngleReview = () => {
   const location = useLocation();
   const capturedAngles = (location.state?.capturedAngles || []) as CapturedAngle[];
   const mode = location.state?.mode || 'exterior';
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
+      }
+    };
+  }, []);
 
   if (capturedAngles.length === 0) {
     return (

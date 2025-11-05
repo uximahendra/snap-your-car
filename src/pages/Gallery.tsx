@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Grid3x3, List, Download, Trash2, Eye } from "lucide-react";
@@ -14,6 +16,18 @@ const Gallery = () => {
   useEffect(() => {
     const saved = getAllSessionsFromLocalStorage();
     setLocalSessions([...saved, ...mockSessions]);
+  }, []);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
+      }
+    };
   }, []);
 
   return (

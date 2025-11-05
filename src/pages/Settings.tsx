@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,6 +19,18 @@ import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
+    }
+    
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background pb-6">
