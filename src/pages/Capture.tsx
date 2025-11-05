@@ -17,6 +17,7 @@ import { exteriorAngles, interiorAngles } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Camera } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 interface CapturedAngle {
   angleId: string;
@@ -50,6 +51,16 @@ const Capture = () => {
     const initCamera = async () => {
       try {
         console.log("🎥 Initializing camera...");
+        
+        // Lock to landscape orientation
+        if (Capacitor.isNativePlatform()) {
+          try {
+            await ScreenOrientation.lock({ orientation: 'landscape' });
+            console.log("✅ Screen locked to landscape");
+          } catch (error) {
+            console.warn("Could not lock orientation:", error);
+          }
+        }
         
         // Request camera permission on native platforms
         if (Capacitor.isNativePlatform()) {
@@ -118,6 +129,11 @@ const Capture = () => {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      
+      // Unlock orientation on cleanup
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch(console.warn);
       }
     };
   }, []);
@@ -262,7 +278,7 @@ const Capture = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+    <div className="h-screen w-screen bg-black flex flex-row relative overflow-hidden">
       {/* Live camera feed */}
       <video
         ref={videoRef}
@@ -277,7 +293,7 @@ const Capture = () => {
       
       {/* Error state */}
       {cameraError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700 z-20">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700 z-30">
           <div className="text-white/50 text-center px-4">
             <CameraIcon size={64} className="mx-auto mb-4" />
             <p className="text-sm">{cameraError}</p>
@@ -285,124 +301,142 @@ const Capture = () => {
         </div>
       )}
 
-      {/* Camera UI Overlay */}
-      <div className="absolute inset-0 z-10">
-        {/* Header */}
-        <header className="absolute top-0 left-0 right-0 z-10 p-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
-              onClick={() => navigate("/home")}
-            >
-              <X size={20} />
-            </Button>
-            <div className="bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-              {angles.find((a) => a.id === selectedAngle)?.label}
-              <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                {capturedAngles.length}/{angles.length}
-              </Badge>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
-              onClick={() => setFlash(!flash)}
-            >
-              {flash ? <Zap size={20} /> : <ZapOff size={20} />}
-            </Button>
-          </div>
-        </header>
-
-        {/* Center guide frame */}
-        <div className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="w-full max-w-md aspect-[4/3] border-2 border-white/50 rounded-2xl relative">
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-2xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-2xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-2xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-2xl" />
-          </div>
-        </div>
-
-        {/* Hint */}
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs">
-          <Sun size={14} className="inline mr-1" />
-          Hold 2–3m away. Avoid direct sunlight
-        </div>
-
-        {/* Angle selector */}
-        <div className="absolute bottom-32 left-0 right-0 px-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {angles.map((angle) => {
-              const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
-              const angleData = angle as any;
-              return (
-                <Button
-                  key={angle.id}
-                  variant={selectedAngle === angle.id ? "default" : "secondary"}
-                  size="sm"
-                  onClick={() => setSelectedAngle(angle.id)}
-                  className="flex-shrink-0 text-xs relative flex items-center gap-1.5"
-                >
+      {/* Left Sidebar - Angle Selector */}
+      <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4">
+        <div className="flex flex-col gap-3 px-2">
+          {angles.map((angle) => {
+            const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
+            const isSelected = selectedAngle === angle.id;
+            const angleData = angle as any;
+            
+            return (
+              <button
+                key={angle.id}
+                onClick={() => setSelectedAngle(angle.id)}
+                className={`
+                  relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all
+                  ${isSelected ? 'border-primary scale-105 shadow-lg shadow-primary/50' : 'border-white/30'}
+                  ${isCaptured ? 'ring-2 ring-green-500' : ''}
+                `}
+              >
+                {/* SVG Preview Image */}
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
                   {angleData.previewImage && (
                     <img 
                       src={angleData.previewImage} 
                       alt={angle.label}
-                      className="w-8 h-6 opacity-70"
+                      className="w-full h-full p-2 text-white"
                     />
                   )}
-                  <span className="whitespace-nowrap">{angle.label}</span>
-                  {isCaptured && (
-                    <CheckCircle2 className="ml-1 text-success w-3 h-3" />
-                  )}
-                </Button>
-              );
-            })}
-          </div>
-          {capturedAngles.length > 0 && (
-            <div className="text-center mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReviewAll}
-                className="bg-white/90 hover:bg-white"
-              >
-                Review All {capturedAngles.length}
-              </Button>
-            </div>
-          )}
+                </div>
+                
+                {/* Captured Checkmark */}
+                {isCaptured && (
+                  <div className="absolute top-1 right-1 bg-green-500 rounded-full p-1">
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  </div>
+                )}
+                
+                {/* Angle Label */}
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs py-1 px-2 text-center">
+                  {angle.label}
+                </div>
+              </button>
+            );
+          })}
         </div>
+      </div>
 
-        {/* Controls */}
-        <div className="absolute bottom-6 left-0 right-0">
-          <div className="max-w-md mx-auto flex items-center justify-around px-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white"
-              onClick={() => toast.info("Upload from gallery")}
-            >
-              <Upload size={24} />
-            </Button>
-
-            <button
-              onClick={handleCapture}
-              className="w-20 h-20 rounded-full border-4 border-white shadow-lg bg-white/10 backdrop-blur-sm interactive-scale hover:bg-white/20 transition-all flex items-center justify-center"
-            >
-              <div className="w-16 h-16 rounded-full bg-white" />
-            </button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
-              onClick={handleReviewAll}
-              disabled={capturedAngles.length === 0}
-            >
-              <span className="text-sm font-bold">{capturedAngles.length}</span>
-            </Button>
+      {/* Right Camera Area */}
+      <div className="flex-1 h-full relative">
+        {/* SVG Frame Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="relative w-[70%] h-[70%]">
+            {/* Render actual SVG frame for selected angle */}
+            {(() => {
+              const selectedAngleData = angles.find(a => a.id === selectedAngle) as any;
+              return selectedAngleData?.previewImage && (
+                <img
+                  src={selectedAngleData.previewImage}
+                  alt="Guide frame"
+                  className="w-full h-full animate-pulse"
+                  style={{
+                    opacity: 0.4,
+                    filter: 'invert(0.5) sepia(1) saturate(5) hue-rotate(75deg) drop-shadow(0 0 20px rgba(34, 197, 94, 0.7))',
+                  }}
+                />
+              );
+            })()}
+            
+            {/* Corner guides */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary" />
           </div>
+        </div>
+        
+        {/* Top Header */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+            onClick={() => navigate("/home")}
+          >
+            <X size={20} />
+          </Button>
+          
+          <div className="bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-2">
+            <span className="font-medium">{angles.find(a => a.id === selectedAngle)?.label}</span>
+            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              {capturedAngles.length}/{angles.length}
+            </Badge>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+            onClick={() => setFlash(!flash)}
+          >
+            {flash ? <Zap size={20} /> : <ZapOff size={20} />}
+          </Button>
+        </div>
+        
+        {/* Hint */}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs z-20">
+          <Sun size={14} className="inline mr-1" />
+          Hold 2–3m away. Avoid direct sunlight
+        </div>
+        
+        {/* Bottom Controls */}
+        <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-8 z-20">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
+            onClick={() => toast.info("Upload from gallery")}
+          >
+            <Upload size={28} />
+          </Button>
+          
+          <button
+            onClick={handleCapture}
+            className="w-20 h-20 rounded-full border-4 border-white bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all flex items-center justify-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-white" />
+          </button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
+            onClick={handleReviewAll}
+            disabled={capturedAngles.length === 0}
+          >
+            <span className="text-lg font-bold">{capturedAngles.length}</span>
+          </Button>
         </div>
       </div>
     </div>
