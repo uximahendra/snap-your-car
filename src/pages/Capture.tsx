@@ -146,7 +146,7 @@ const Capture = () => {
     };
   }, []);
 
-  const handleCapture = () => {
+  const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
     const video = videoRef.current;
@@ -165,6 +165,16 @@ const Capture = () => {
       
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      // Switch to portrait mode for preview
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await ScreenOrientation.lock({ orientation: 'portrait' });
+          console.log("✅ Screen locked to portrait for preview");
+        } catch (error) {
+          console.warn("Could not lock to portrait:", error);
+        }
       }
       
       toast.success("Photo captured!");
