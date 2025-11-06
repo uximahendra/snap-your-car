@@ -330,12 +330,15 @@ const Capture = () => {
                 `}
               >
                 {/* SVG Preview Image */}
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900/70">
                   {angleData.previewImage && (
                     <img 
                       src={angleData.previewImage} 
                       alt={angle.label}
-                      className="w-full h-full p-2 text-white"
+                      className="w-full h-full p-2"
+                      style={{
+                        filter: 'invert(1) brightness(1.5)'
+                      }}
                     />
                   )}
                 </div>
@@ -383,29 +386,6 @@ const Capture = () => {
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-white" />
             <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-white" />
             <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-white" />
-          </div>
-        </div>
-        
-        {/* Vertical Alignment Indicator - Right Side */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
-          <div className="relative h-[60vh] w-1 bg-white/60 rounded-full">
-            {/* Center crosshair */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8">
-              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/80" />
-              <div className="absolute left-1/2 top-0 h-full w-0.5 bg-white/80" />
-            </div>
-            
-            {/* Tick marks */}
-            {[...Array(11)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-1/2 -translate-x-1/2 h-0.5 bg-white/60"
-                style={{
-                  top: `${i * 10}%`,
-                  width: i === 5 ? '16px' : '8px',
-                }}
-              />
-            ))}
           </div>
         </div>
         
