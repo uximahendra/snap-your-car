@@ -16,9 +16,11 @@ import {
 import { ArrowLeft, User, HelpCircle, Mail, LogOut } from "lucide-react";
 import { mockUser, backgrounds } from "@/lib/mockData";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -89,7 +91,11 @@ const Settings = () => {
 
             <div className="flex items-center justify-between">
               <Label htmlFor="theme">Dark Mode</Label>
-              <Switch id="theme" />
+              <Switch 
+                id="theme" 
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+              />
             </div>
           </div>
         </div>

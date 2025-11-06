@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { processingSteps } from "@/lib/mockData";
 import { CarImage } from "@/lib/mockData";
+import { saveSessionToLocalStorage, generateSessionId } from "@/lib/storage";
 
 interface CapturedAngle {
   angleId: string;
@@ -83,7 +84,27 @@ const Processing = () => {
               enhancedImage: currentAngle.imageData
             };
             
-            setEnhancedImages(prev => [...prev, enhanced]);
+            const updatedImages = [...enhancedImages, enhanced];
+            setEnhancedImages(updatedImages);
+            
+            // Auto-save to gallery when all angles are processed
+            if (currentAngleIndex === capturedAngles.length - 1) {
+              const sessionId = generateSessionId();
+              const sessionTitle = `${mode === 'exterior' ? 'Exterior' : 'Interior'} - ${new Date().toLocaleDateString()}`;
+              
+              const carSession = {
+                id: sessionId,
+                title: sessionTitle,
+                date: new Date().toISOString(),
+                images: updatedImages.map((img, idx) => ({
+                  ...img,
+                  id: `${sessionId}_img_${idx}`
+                })),
+                mode
+              };
+              
+              saveSessionToLocalStorage(carSession);
+            }
             
             setTimeout(() => {
               setCurrentAngleIndex(prev => prev + 1);
