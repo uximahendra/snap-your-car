@@ -371,18 +371,41 @@ const Capture = () => {
                   alt="Guide frame"
                   className="w-full h-full animate-pulse"
                   style={{
-                    opacity: 0.4,
-                    filter: 'invert(0.5) sepia(1) saturate(5) hue-rotate(75deg) drop-shadow(0 0 20px rgba(34, 197, 94, 0.7))',
+                    opacity: 0.8,
+                    filter: 'invert(1) brightness(2) drop-shadow(0 0 10px rgba(255, 255, 255, 0.8))',
                   }}
                 />
               );
             })()}
             
             {/* Corner guides */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-primary" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-primary" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-primary" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-primary" />
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-white" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-white" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-white" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-white" />
+          </div>
+        </div>
+        
+        {/* Vertical Alignment Indicator - Right Side */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+          <div className="relative h-[60vh] w-1 bg-white/60 rounded-full">
+            {/* Center crosshair */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8">
+              <div className="absolute top-1/2 left-0 w-full h-0.5 bg-white/80" />
+              <div className="absolute left-1/2 top-0 h-full w-0.5 bg-white/80" />
+            </div>
+            
+            {/* Tick marks */}
+            {[...Array(11)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute left-1/2 -translate-x-1/2 h-0.5 bg-white/60"
+                style={{
+                  top: `${i * 10}%`,
+                  width: i === 5 ? '16px' : '8px',
+                }}
+              />
+            ))}
           </div>
         </div>
         
