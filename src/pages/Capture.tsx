@@ -443,17 +443,19 @@ const Capture = () => {
           Hold 2–3m away. Avoid direct sunlight
         </div>
         
-        {/* Bottom Controls */}
-        <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-8 z-20">
+        {/* Vertical Controls - Right Side */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-8 z-20">
+          {/* Upload Button - Top */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
+            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full w-14 h-14"
             onClick={() => toast.info("Upload from gallery")}
           >
             <Upload size={28} />
           </Button>
           
+          {/* Capture Button - Middle */}
           <button
             onClick={handleCapture}
             className="w-20 h-20 rounded-full border-4 border-white bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all flex items-center justify-center"
@@ -461,10 +463,11 @@ const Capture = () => {
             <div className="w-16 h-16 rounded-full bg-white" />
           </button>
           
+          {/* Photo Count - Bottom */}
           <Button
             variant="ghost"
             size="icon"
-            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full"
+            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full w-14 h-14"
             onClick={handleReviewAll}
             disabled={capturedAngles.length === 0}
           >
