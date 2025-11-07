@@ -2,9 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
-import Splash from "./pages/Splash";
 import Auth from "./pages/Auth";
 import MyCars from "./pages/MyCars";
 import Capture from "./pages/Capture";
@@ -23,7 +22,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Splash />} />
+        <Route path="/" element={<Navigate to="/my-cars" replace />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/my-cars" element={<MyCars />} />
         <Route path="/capture" element={<Capture />} />

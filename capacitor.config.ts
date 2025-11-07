@@ -13,6 +13,15 @@ const config: CapacitorConfig = {
     allowMixedContent: true
   },
   plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      launchFadeOutDuration: 500,
+      backgroundColor: "#0F1729",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false
+    },
     Camera: {
       permissions: ['camera', 'photos']
     }
