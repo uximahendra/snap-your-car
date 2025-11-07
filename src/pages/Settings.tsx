@@ -42,7 +42,7 @@ const Settings = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/my-cars")}
           >
             <ArrowLeft size={20} />
           </Button>

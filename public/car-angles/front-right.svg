@@ -1,8 +1,8 @@
 <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M25 35 L20 45 L20 55 L25 60 L100 60 L105 55 L105 45 L100 35 Z" fill="currentColor" opacity="0.3"/>
-  <path d="M35 30 L90 28 L100 35 L105 45 L105 55 L100 60 L90 65 L25 60 L20 55 L20 45 L25 35 L35 30 Z" stroke="currentColor" stroke-width="2" fill="none"/>
-  <circle cx="32" cy="50" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-  <circle cx="92" cy="52" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
-  <path d="M45 33 L80 32 L82 38 L80 48 L42 47 L40 41 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
-  <path d="M30 58 L32 60 M90 60 L85 65" stroke="currentColor" stroke-width="2"/>
+  <path d="M85 28 L95 35 L100 45 L100 55 L95 60 L85 65 L20 60 L15 55 L15 45 L20 35 L30 30 L85 28 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+  <circle cx="87" cy="52" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+  <circle cx="27" cy="50" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+  <path d="M75 32 L40 33 L35 38 L37 48 L75 47 Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+  <path d="M85 60 L80 65 M25 58 L27 60" stroke="currentColor" stroke-width="2"/>
 </svg>

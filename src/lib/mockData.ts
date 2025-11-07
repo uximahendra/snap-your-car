@@ -26,22 +26,16 @@ export interface CarSession {
   mode: "exterior" | "interior";
 }
 
-export const exteriorAngles = [
+// All car angles combined (exterior + interior)
+export const allAngles = [
   { id: "front", label: "Front", icon: "circle", previewImage: "/car-angles/front.svg" },
-  { id: "front-left", label: "3/4 Front Left", icon: "circle", previewImage: "/car-angles/front-left.svg" },
-  { id: "left", label: "Left Side", icon: "circle", previewImage: "/car-angles/left.svg" },
+  { id: "front-left", label: "Front Left", icon: "circle", previewImage: "/car-angles/front-left.svg" },
+  { id: "left", label: "Left", icon: "circle", previewImage: "/car-angles/left.svg" },
   { id: "rear-left", label: "Rear Left", icon: "circle", previewImage: "/car-angles/rear-left.svg" },
   { id: "rear", label: "Rear", icon: "circle", previewImage: "/car-angles/rear.svg" },
   { id: "rear-right", label: "Rear Right", icon: "circle", previewImage: "/car-angles/rear-right.svg" },
+  { id: "right", label: "Right", icon: "circle", previewImage: "/car-angles/right.svg" },
   { id: "front-right", label: "Front Right", icon: "circle", previewImage: "/car-angles/front-right.svg" },
-];
-
-export const interiorAngles = [
-  { id: "dashboard", label: "Dashboard", icon: "square" },
-  { id: "front-seats", label: "Front Seats", icon: "square" },
-  { id: "rear-seats", label: "Rear Seats", icon: "square" },
-  { id: "trunk", label: "Trunk", icon: "square" },
-  { id: "door-panels", label: "Door Panels", icon: "square" },
 ];
 
 export const backgrounds = [

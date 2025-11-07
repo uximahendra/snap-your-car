@@ -13,7 +13,7 @@ import {
   ArrowLeft,
   CheckCircle2,
 } from "lucide-react";
-import { exteriorAngles, interiorAngles } from "@/lib/mockData";
+import { allAngles } from "@/lib/mockData";
 import { toast } from "sonner";
 import { Camera } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
@@ -29,13 +29,10 @@ interface CapturedAngle {
 const Capture = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const mode = location.state?.mode || 'exterior';
   const existingAngles = (location.state?.capturedAngles || []) as CapturedAngle[];
   const retakeAngleId = location.state?.retakeAngleId;
-
-  const angles = mode === 'exterior' ? exteriorAngles : interiorAngles;
   
-  const [selectedAngle, setSelectedAngle] = useState(retakeAngleId || angles[0].id);
+  const [selectedAngle, setSelectedAngle] = useState(retakeAngleId || allAngles[0].id);
   const [flash, setFlash] = useState(false);
   const [captured, setCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -184,7 +181,7 @@ const Capture = () => {
   const handleNextAngle = () => {
     if (!capturedImage) return;
 
-    const currentAngle = angles.find(a => a.id === selectedAngle);
+    const currentAngle = allAngles.find(a => a.id === selectedAngle);
     if (!currentAngle) return;
 
     const newCapturedAngle: CapturedAngle = {
@@ -202,19 +199,18 @@ const Capture = () => {
 
     // Find next uncaptured angle
     const capturedIds = new Set(updatedAngles.map(a => a.angleId));
-    const nextAngle = angles.find(a => !capturedIds.has(a.id));
+    const nextAngle = allAngles.find(a => !capturedIds.has(a.id));
 
     if (nextAngle) {
       setSelectedAngle(nextAngle.id);
       setCaptured(false);
       setCapturedImage(null);
       initCamera();
-      toast.success(`${updatedAngles.length} of ${angles.length} captured!`);
+      toast.success(`${updatedAngles.length} of ${allAngles.length} captured!`);
     } else {
       navigate('/angle-review', {
         state: {
-          capturedAngles: updatedAngles,
-          mode
+          capturedAngles: updatedAngles
         }
       });
     }
@@ -223,8 +219,7 @@ const Capture = () => {
   const handleReviewAll = () => {
     navigate('/angle-review', {
       state: {
-        capturedAngles,
-        mode
+        capturedAngles
       }
     });
   };
@@ -267,7 +262,7 @@ const Capture = () => {
               onClick={handleNextAngle}
             >
               <Sparkles className="mr-2" />
-              {capturedAngles.length + 1 < angles.length ? 'Next Angle' : 'Review All'}
+              {capturedAngles.length + 1 < allAngles.length ? 'Next Angle' : 'Review All'}
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -324,7 +319,7 @@ const Capture = () => {
       {/* Left Sidebar - Angle Selector */}
       <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4">
         <div className="flex flex-col gap-3 px-2">
-          {angles.map((angle) => {
+          {allAngles.map((angle) => {
             const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
             const isSelected = selectedAngle === angle.id;
             const angleData = angle as any;
@@ -372,12 +367,12 @@ const Capture = () => {
 
       {/* Right Camera Area */}
       <div className="flex-1 h-full relative">
-        {/* SVG Frame Overlay */}
+          {/* SVG Frame Overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="relative w-[70%] h-[70%]">
             {/* Render actual SVG frame for selected angle */}
             {(() => {
-              const selectedAngleData = angles.find(a => a.id === selectedAngle) as any;
+              const selectedAngleData = allAngles.find(a => a.id === selectedAngle) as any;
               return selectedAngleData?.previewImage && (
                 <img
                   src={selectedAngleData.previewImage}
@@ -405,15 +400,15 @@ const Capture = () => {
             variant="ghost"
             size="icon"
             className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/my-cars")}
           >
             <X size={20} />
           </Button>
           
           <div className="bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-2">
-            <span className="font-medium">{angles.find(a => a.id === selectedAngle)?.label}</span>
+            <span className="font-medium">{allAngles.find(a => a.id === selectedAngle)?.label}</span>
             <Badge variant="secondary" className="bg-white/20 text-white border-0">
-              {capturedAngles.length}/{angles.length}
+              {capturedAngles.length}/{allAngles.length}
             </Badge>
           </div>
           

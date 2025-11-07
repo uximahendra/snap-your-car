@@ -50,7 +50,7 @@ const Splash = () => {
             variant="secondary" 
             size="lg" 
             className="w-full"
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/my-cars")}
           >
             Try Demo
           </Button>
