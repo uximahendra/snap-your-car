@@ -71,27 +71,26 @@ const SessionDetail = () => {
 
   return (
     <PageTransition>
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen bg-background pb-28">
       {/* Header */}
-      <header className="bg-card border-b border-border p-5 sticky top-0 z-10 shadow-[var(--elevation-2)]">
+      <header className="bg-card border-b border-border px-4 py-6 sticky top-0 z-10 shadow-[var(--elevation-2)]">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/my-cars")}
+              aria-label="Back to My Cars"
             >
               <ArrowLeft size={22} strokeWidth={2} />
             </Button>
-            <div className="flex gap-2">
-              <Button variant="outline" size="default">
-                <Download size={18} strokeWidth={2} />
-                <span className="ml-2">Export</span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Trash2 size={18} strokeWidth={2} />
-              </Button>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              aria-label="Delete session"
+            >
+              <Trash2 size={20} strokeWidth={2} />
+            </Button>
           </div>
           <div>
             <h1 className="text-h2">{session.title}</h1>
@@ -136,6 +135,20 @@ const SessionDetail = () => {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Fixed Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-10 shadow-[var(--elevation-4)]">
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <Button 
+            size="lg" 
+            className="w-full"
+            aria-label="Export all photos"
+          >
+            <Download size={20} strokeWidth={2} />
+            <span className="ml-2">Export All Photos</span>
+          </Button>
         </div>
       </div>
     </div>
