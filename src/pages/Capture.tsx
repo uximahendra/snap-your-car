@@ -395,19 +395,19 @@ const Capture = () => {
         </div>
         
         {/* Top Header */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
           <Button
             variant="ghost"
             size="icon"
-            className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+            className="bg-black/60 backdrop-blur-md text-white hover:bg-black/80 rounded-full w-12 h-12 shadow-[var(--elevation-3)]"
             onClick={() => navigate("/my-cars")}
           >
-            <X size={20} />
+            <X size={24} strokeWidth={2.5} />
           </Button>
           
-          <div className="bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full flex items-center gap-2">
-            <span className="font-medium">{allAngles.find(a => a.id === selectedAngle)?.label}</span>
-            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+          <div className="bg-black/60 backdrop-blur-md text-white px-5 py-2.5 rounded-full flex items-center gap-2.5 shadow-[var(--elevation-3)]">
+            <span className="font-semibold text-sm">{allAngles.find(a => a.id === selectedAngle)?.label}</span>
+            <Badge variant="secondary" className="bg-white/20 text-white border-0 font-bold">
               {capturedAngles.length}/{allAngles.length}
             </Badge>
           </div>
@@ -415,48 +415,48 @@ const Capture = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full"
+            className="bg-black/60 backdrop-blur-md text-white hover:bg-black/80 rounded-full w-12 h-12 shadow-[var(--elevation-3)]"
             onClick={() => setFlash(!flash)}
           >
-            {flash ? <Zap size={20} /> : <ZapOff size={20} />}
+            {flash ? <Zap size={24} strokeWidth={2.5} /> : <ZapOff size={24} strokeWidth={2.5} />}
           </Button>
         </div>
         
         {/* Hint */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs z-20">
-          <Sun size={14} className="inline mr-1" />
-          Hold 2–3m away. Avoid direct sunlight
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-xs z-20 shadow-[var(--elevation-2)]">
+          <Sun size={16} className="inline mr-2" strokeWidth={2} />
+          <span className="font-medium">Hold 2–3m away. Avoid direct sunlight</span>
         </div>
         
         {/* Vertical Controls - Right Side */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-8 z-20">
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
           {/* Upload Button - Top */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full w-14 h-14"
+            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)]"
             onClick={() => toast.info("Upload from gallery")}
           >
-            <Upload size={28} />
+            <Upload size={28} strokeWidth={2} />
           </Button>
           
           {/* Capture Button - Middle */}
           <button
             onClick={handleCapture}
-            className="w-20 h-20 rounded-full border-4 border-white bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all flex items-center justify-center"
+            className="w-24 h-24 rounded-full border-[6px] border-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-[var(--elevation-5)] active:scale-95 flex items-center justify-center"
           >
-            <div className="w-16 h-16 rounded-full bg-white" />
+            <div className="w-20 h-20 rounded-full bg-white" />
           </button>
           
           {/* Photo Count - Bottom */}
           <Button
             variant="ghost"
             size="icon"
-            className="text-white bg-black/50 backdrop-blur-sm hover:bg-black/70 rounded-full w-14 h-14"
+            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)]"
             onClick={handleReviewAll}
             disabled={capturedAngles.length === 0}
           >
-            <span className="text-lg font-bold">{capturedAngles.length}</span>
+            <span className="text-xl font-bold">{capturedAngles.length}</span>
           </Button>
         </div>
       </div>

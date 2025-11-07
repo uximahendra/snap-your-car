@@ -37,41 +37,41 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
-      <header className="bg-card border-b border-border p-4 sticky top-0 z-10">
+      <header className="bg-card border-b border-border p-5 sticky top-0 z-10 shadow-[var(--elevation-2)]">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => navigate("/my-cars")}
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={22} strokeWidth={2} />
           </Button>
-          <h1 className="text-lg font-semibold">Settings</h1>
-          <div className="w-8" />
+          <h1 className="text-h2">Settings</h1>
+          <div className="w-11" />
         </div>
       </header>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-6">
         {/* Profile */}
-        <div className="card-elevated p-4 text-center">
-          <Logo size="sm" />
-          <h2 className="text-lg font-semibold mt-4">{mockUser.name}</h2>
-          <p className="text-sm text-muted-foreground">{mockUser.email}</p>
-          <Button variant="outline" size="sm" className="mt-3">
-            <User size={14} className="mr-1" />
-            Edit Profile
+        <div className="bg-card rounded-2xl p-6 text-center shadow-[var(--elevation-2)] border border-border">
+          <Logo size="md" />
+          <h2 className="text-h2 mt-5">{mockUser.name}</h2>
+          <p className="text-body text-muted-foreground mt-1">{mockUser.email}</p>
+          <Button variant="outline" size="default" className="mt-4">
+            <User size={18} strokeWidth={2} />
+            <span className="ml-2">Edit Profile</span>
           </Button>
         </div>
 
         {/* Preferences */}
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Preferences</h2>
+          <h2 className="text-h3">Preferences</h2>
           
-          <div className="card-elevated p-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="default-bg">Default Background</Label>
+          <div className="bg-card rounded-2xl p-5 space-y-5 shadow-[var(--elevation-2)] border border-border">
+            <div className="space-y-2.5">
+              <Label htmlFor="default-bg" className="text-body font-semibold">Default Background</Label>
               <Select defaultValue={backgrounds[0].id}>
-                <SelectTrigger id="default-bg">
+                <SelectTrigger id="default-bg" className="h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -84,13 +84,13 @@ const Settings = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="watermark-pref">Watermark by Default</Label>
+            <div className="flex items-center justify-between py-1">
+              <Label htmlFor="watermark-pref" className="text-body font-semibold cursor-pointer">Watermark by Default</Label>
               <Switch id="watermark-pref" defaultChecked />
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label htmlFor="theme">Dark Mode</Label>
+            <div className="flex items-center justify-between py-1">
+              <Label htmlFor="theme" className="text-body font-semibold cursor-pointer">Dark Mode</Label>
               <Switch 
                 id="theme" 
                 checked={theme === 'dark'}
@@ -102,49 +102,52 @@ const Settings = () => {
 
         {/* Support */}
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Support</h2>
+          <h2 className="text-h3">Support</h2>
           
-          <div className="card-elevated p-3 space-y-2">
+          <div className="bg-card rounded-2xl p-2 space-y-1 shadow-[var(--elevation-2)] border border-border">
             <Button
               variant="ghost"
-              className="w-full justify-start"
+              size="lg"
+              className="w-full justify-start h-14"
               onClick={() => toast.info("Opening FAQ...")}
             >
-              <HelpCircle size={20} className="mr-3" />
-              FAQ
+              <HelpCircle size={22} strokeWidth={2} />
+              <span className="ml-3 text-body font-medium">FAQ</span>
             </Button>
             
             <Button
               variant="ghost"
-              className="w-full justify-start"
+              size="lg"
+              className="w-full justify-start h-14"
               onClick={() => toast.info("Opening contact form...")}
             >
-              <Mail size={20} className="mr-3" />
-              Contact Support
+              <Mail size={22} strokeWidth={2} />
+              <span className="ml-3 text-body font-medium">Contact Support</span>
             </Button>
           </div>
         </div>
 
         {/* Account */}
         <div className="space-y-3">
-          <div className="card-elevated p-3">
+          <div className="bg-card rounded-2xl p-2 shadow-[var(--elevation-2)] border border-border">
             <Button
               variant="ghost"
-              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              size="lg"
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 h-14"
               onClick={() => {
                 toast.success("Logged out");
                 navigate("/");
               }}
             >
-              <LogOut size={20} className="mr-3" />
-              Log Out
+              <LogOut size={22} strokeWidth={2} />
+              <span className="ml-3 text-body font-medium">Log Out</span>
             </Button>
           </div>
         </div>
 
         {/* App info */}
-        <div className="text-center text-xs text-muted-foreground space-y-1 pt-4">
-          <p>Snap Your Car v1.0.0</p>
+        <div className="text-center text-caption text-muted-foreground space-y-1 pt-6">
+          <p className="font-medium">Snap Your Car v1.0.0</p>
           <p>© 2025 • Made with ❤️ in Europe</p>
         </div>
       </div>

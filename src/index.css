@@ -20,7 +20,8 @@ All colors MUST be HSL.
     /* Card & Surfaces */
     --card: 0 0% 100%;
     --card-foreground: 209 53% 9%;
-    --card-elevated: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
+    --surface-overlay: 0 0% 100%;
 
     /* Popover */
     --popover: 0 0% 100%;
@@ -50,10 +51,26 @@ All colors MUST be HSL.
     /* Success */
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
+    --success-light: 142 71% 95%;
 
     /* Warning */
-    --warning: 45 93% 47%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 95%;
+    
+    /* Error */
+    --error: 0 72% 51%;
+    --error-light: 0 72% 95%;
+
+    /* Semantic Text Colors */
+    --text-primary: 209 53% 9%;
+    --text-secondary: 214 11% 48%;
+    --text-tertiary: 214 11% 65%;
+    --text-inverse: 0 0% 100%;
+
+    /* Interactive States */
+    --interactive-hover: 199 88% 45%;
+    --interactive-pressed: 199 88% 40%;
 
     /* Border & Input */
     --border: 214 20% 90%;
@@ -63,7 +80,14 @@ All colors MUST be HSL.
     /* Radius */
     --radius: 0.875rem;
 
-    /* Shadows */
+    /* Elevation Shadows */
+    --elevation-1: 0 1px 2px rgba(11, 23, 34, 0.04);
+    --elevation-2: 0 2px 8px rgba(11, 23, 34, 0.06), 0 1px 2px rgba(11, 23, 34, 0.04);
+    --elevation-3: 0 4px 16px rgba(11, 23, 34, 0.08), 0 2px 4px rgba(11, 23, 34, 0.04);
+    --elevation-4: 0 8px 24px rgba(11, 23, 34, 0.12), 0 4px 8px rgba(11, 23, 34, 0.06);
+    --elevation-5: 0 16px 48px rgba(11, 23, 34, 0.16), 0 8px 16px rgba(11, 23, 34, 0.08);
+    
+    /* Legacy Shadows (for compatibility) */
     --shadow-sm: 0 2px 8px rgba(11, 23, 34, 0.04);
     --shadow-md: 0 6px 20px rgba(11, 23, 34, 0.06);
     --shadow-lg: 0 12px 40px rgba(11, 23, 34, 0.08);
@@ -84,7 +108,8 @@ All colors MUST be HSL.
 
     --card: 209 53% 12%;
     --card-foreground: 0 0% 100%;
-    --card-elevated: 209 53% 15%;
+    --surface-elevated: 209 53% 15%;
+    --surface-overlay: 209 53% 18%;
 
     --popover: 209 53% 12%;
     --popover-foreground: 0 0% 100%;
@@ -107,13 +132,32 @@ All colors MUST be HSL.
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
+    --success-light: 142 71% 15%;
 
-    --warning: 45 93% 47%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 15%;
+    
+    --error: 0 72% 51%;
+    --error-light: 0 72% 15%;
+
+    --text-primary: 0 0% 100%;
+    --text-secondary: 214 11% 75%;
+    --text-tertiary: 214 11% 55%;
+    --text-inverse: 209 53% 9%;
+
+    --interactive-hover: 199 88% 60%;
+    --interactive-pressed: 199 88% 70%;
 
     --border: 209 40% 25%;
     --input: 209 40% 25%;
     --ring: 199 88% 52%;
+
+    --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --elevation-2: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --elevation-3: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+    --elevation-4: 0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.4);
+    --elevation-5: 0 16px 48px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.5);
 
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
@@ -137,17 +181,76 @@ All colors MUST be HSL.
 }
 
 @layer components {
+  /* Typography Scale */
+  .text-display {
+    @apply text-3xl md:text-4xl font-bold leading-tight tracking-tight;
+  }
+
+  .text-h1 {
+    @apply text-2xl md:text-3xl font-bold leading-tight tracking-tight;
+  }
+
+  .text-h2 {
+    @apply text-xl md:text-2xl font-semibold leading-snug tracking-tight;
+  }
+
+  .text-h3 {
+    @apply text-lg md:text-xl font-semibold leading-snug;
+  }
+
+  .text-body-lg {
+    @apply text-base leading-relaxed;
+  }
+
+  .text-body {
+    @apply text-sm leading-normal;
+  }
+
+  .text-body-sm {
+    @apply text-[0.8125rem] leading-tight;
+  }
+
+  .text-caption {
+    @apply text-xs font-medium tracking-wide;
+  }
+
+  /* Spacing System */
+  .space-xs { @apply p-2; }
+  .space-sm { @apply p-3; }
+  .space-md { @apply p-4; }
+  .space-lg { @apply p-6; }
+  .space-xl { @apply p-8; }
+
+  .stack-xs { @apply space-y-2; }
+  .stack-sm { @apply space-y-3; }
+  .stack-md { @apply space-y-4; }
+  .stack-lg { @apply space-y-6; }
+  .stack-xl { @apply space-y-8; }
+
   /* Interactive Elements */
   .interactive-scale {
     @apply transition-transform duration-150 active:scale-[0.96];
   }
 
+  .interactive-card {
+    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.99];
+  }
+
+  .interactive-item {
+    @apply transition-all duration-150 active:scale-[0.97];
+  }
+
   .card-elevated {
-    @apply bg-card rounded-2xl p-3 shadow-[var(--shadow-md)];
+    @apply bg-card rounded-2xl p-3 shadow-[var(--elevation-2)] border border-border;
   }
 
   .ghost-overlay {
     @apply absolute inset-0 bg-secondary/10 border-2 border-secondary rounded-lg pointer-events-none;
+  }
+  
+  /* Loading States */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded-xl;
   }
 
   /* Animations */
@@ -178,5 +281,20 @@ All colors MUST be HSL.
 
   .animate-slide-up {
     animation: slide-up 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-out;
   }
 }
