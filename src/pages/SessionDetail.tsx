@@ -7,19 +7,35 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Trash2 } from "lucide-react";
 import { mockSessions } from "@/lib/mockData";
 import { getSessionById } from "@/lib/storage";
+import { PageTransition } from "@/components/PageTransition";
+import { SessionDetailPageSkeleton } from "@/components/skeletons/SessionDetailSkeleton";
 
 const SessionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [session, setSession] = useState(mockSessions.find(s => s.id === id));
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const localSession = getSessionById(id);
-      if (localSession) {
-        setSession(localSession);
+    const loadSession = async () => {
+      setIsLoading(true);
+      
+      if (id) {
+        // Simulate loading time for smooth transition
+        const [localSession] = await Promise.all([
+          Promise.resolve(getSessionById(id)),
+          new Promise(resolve => setTimeout(resolve, 300))
+        ]);
+        
+        if (localSession) {
+          setSession(localSession);
+        }
       }
-    }
+      
+      setIsLoading(false);
+    };
+    
+    loadSession();
   }, [id]);
 
   useEffect(() => {
@@ -34,20 +50,27 @@ const SessionDetail = () => {
     };
   }, []);
 
+  if (isLoading) {
+    return <SessionDetailPageSkeleton />;
+  }
+
   if (!session) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Session not found</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/my-cars")}>
-            Back to My Cars
-          </Button>
+      <PageTransition>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-muted-foreground">Session not found</p>
+            <Button variant="outline" className="mt-4" onClick={() => navigate("/my-cars")}>
+              Back to My Cars
+            </Button>
+          </div>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-card border-b border-border p-5 sticky top-0 z-10 shadow-[var(--elevation-2)]">
@@ -116,6 +139,7 @@ const SessionDetail = () => {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 };
 

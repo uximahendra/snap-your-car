@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
@@ -17,24 +17,36 @@ import { ArrowLeft, User, HelpCircle, Mail, LogOut } from "lucide-react";
 import { mockUser, backgrounds } from "@/lib/mockData";
 import { toast } from "sonner";
 import { useTheme } from "@/hooks/useTheme";
+import { PageTransition } from "@/components/PageTransition";
+import { SettingsPageSkeleton } from "@/components/skeletons/SettingsSkeleton";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate loading for smooth transition
+    const timer = setTimeout(() => setIsLoading(false), 300);
+    
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: 'portrait' }).catch(console.warn);
     }
     
     return () => {
+      clearTimeout(timer);
       if (Capacitor.isNativePlatform()) {
         ScreenOrientation.unlock().catch(console.warn);
       }
     };
   }, []);
 
+  if (isLoading) {
+    return <SettingsPageSkeleton />;
+  }
+
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="bg-card border-b border-border p-5 sticky top-0 z-10 shadow-[var(--elevation-2)]">
@@ -152,6 +164,7 @@ const Settings = () => {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 };
 

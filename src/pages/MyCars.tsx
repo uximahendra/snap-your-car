@@ -9,15 +9,31 @@ import { Input } from "@/components/ui/input";
 import { Settings, Plus, Eye, Download, Search, ImageIcon } from "lucide-react";
 import { mockSessions, mockUser } from "@/lib/mockData";
 import { getAllSessionsFromLocalStorage } from "@/lib/storage";
+import { PageTransition } from "@/components/PageTransition";
+import { MyCarsPageSkeleton } from "@/components/skeletons/MyCarsSkeletons";
 
 const MyCars = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [localSessions, setLocalSessions] = useState(mockSessions);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const saved = getAllSessionsFromLocalStorage();
-    setLocalSessions([...saved, ...mockSessions]);
+    // Simulate loading time for smooth transition
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      // Simulate minimum loading time for smooth skeleton display
+      const [saved] = await Promise.all([
+        getAllSessionsFromLocalStorage(),
+        new Promise(resolve => setTimeout(resolve, 300))
+      ]);
+      
+      setLocalSessions([...saved, ...mockSessions]);
+      setIsLoading(false);
+    };
+    
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -36,7 +52,12 @@ const MyCars = () => {
     session.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (isLoading) {
+    return <MyCarsPageSkeleton />;
+  }
+
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="bg-card border-b border-border px-4 py-4 sticky top-0 z-10 shadow-[var(--elevation-2)]">
@@ -158,6 +179,7 @@ const MyCars = () => {
         </div>
       </nav>
     </div>
+    </PageTransition>
   );
 };
 
