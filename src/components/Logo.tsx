@@ -28,7 +28,7 @@ export const Logo = ({ size = "md", showText = true }: LogoProps) => {
       </div>
       {showText && (
         <div className="flex flex-col">
-          <span className={`${sizes[size].text} font-bold text-white leading-none`}>
+          <span className={`${sizes[size].text} font-bold text-foreground leading-none`}>
             Snap Your Car
           </span>
         </div>
