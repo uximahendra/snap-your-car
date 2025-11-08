@@ -106,7 +106,10 @@ const ShowroomSelection = () => {
               )}
             </div>
             
-            <div className={`relative w-full aspect-[4/3] rounded-2xl overflow-hidden ${currentBackground.backgroundImage}`}>
+            <div 
+              className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-cover bg-center"
+              style={{ backgroundImage: `url(${currentBackground.backgroundImage})` }}
+            >
               {currentImage.backgroundRemoved ? (
                 <img
                   src={currentImage.backgroundRemoved}
@@ -167,7 +170,10 @@ const ShowroomSelection = () => {
                         : "border-border"
                     }`}
                   >
-                    <div className={`w-full h-full ${bg.thumbnail}`} />
+                    <div 
+                      className="w-full h-full bg-cover bg-center" 
+                      style={{ backgroundImage: `url(${bg.thumbnail})` }}
+                    />
                     {isSelected && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <CheckCircle2 size={24} className="text-primary drop-shadow-lg" />
@@ -227,7 +233,10 @@ const ShowroomSelection = () => {
                         isActive ? 'border-primary' : 'border-border'
                       }`}
                     >
-                      <div className={`absolute inset-0 ${bg?.thumbnail}`} />
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center" 
+                        style={{ backgroundImage: `url(${bg?.thumbnail})` }}
+                      />
                       <img
                         src={image.backgroundRemoved || image.before}
                         alt={image.angle}

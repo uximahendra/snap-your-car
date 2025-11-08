@@ -3,7 +3,7 @@
  */
 export const compositeCarOnBackground = async (
   carPNG: string,
-  backgroundColor: string,
+  backgroundImageUrl: string,
   options?: {
     scale?: number;
     shadow?: boolean;
@@ -12,13 +12,20 @@ export const compositeCarOnBackground = async (
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      const carImg = new Image();
+      const bgImg = new Image();
+      carImg.crossOrigin = 'anonymous';
+      bgImg.crossOrigin = 'anonymous';
       
-      img.onload = () => {
+      let carLoaded = false;
+      let bgLoaded = false;
+      
+      const tryComposite = () => {
+        if (!carLoaded || !bgLoaded) return;
+        
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = bgImg.width;
+        canvas.height = bgImg.height;
         
         const ctx = canvas.getContext('2d', { 
           alpha: true,
@@ -33,17 +40,8 @@ export const compositeCarOnBackground = async (
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         
-        // Draw background
-        if (backgroundColor.startsWith('bg-gradient')) {
-          // Extract gradient colors from Tailwind class
-          // For now, use a solid color as fallback
-          ctx.fillStyle = '#f5f5f5';
-        } else if (backgroundColor === 'bg-white') {
-          ctx.fillStyle = '#ffffff';
-        } else {
-          ctx.fillStyle = '#f5f5f5';
-        }
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw background image
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
         
         // Add shadow if requested
         if (options?.shadow) {
@@ -52,26 +50,47 @@ export const compositeCarOnBackground = async (
           ctx.shadowOffsetY = 10;
         }
         
-        // Calculate position
-        const scale = options?.scale || 1;
-        const x = options?.position?.x || 0;
-        const y = options?.position?.y || 0;
+        // Calculate scale to fit car in background while maintaining aspect ratio
+        const scale = options?.scale || Math.min(
+          canvas.width / carImg.width * 0.8,
+          canvas.height / carImg.height * 0.8
+        );
+        
+        const carWidth = carImg.width * scale;
+        const carHeight = carImg.height * scale;
+        
+        // Center the car or use custom position
+        const x = options?.position?.x ?? (canvas.width - carWidth) / 2;
+        const y = options?.position?.y ?? (canvas.height - carHeight) / 2;
         
         // Draw car image
         ctx.drawImage(
-          img,
+          carImg,
           x,
           y,
-          img.width * scale,
-          img.height * scale
+          carWidth,
+          carHeight
         );
         
         // Convert to data URL
         resolve(canvas.toDataURL('image/png', 1.0));
       };
       
-      img.onerror = reject;
-      img.src = carPNG;
+      carImg.onload = () => {
+        carLoaded = true;
+        tryComposite();
+      };
+      
+      bgImg.onload = () => {
+        bgLoaded = true;
+        tryComposite();
+      };
+      
+      carImg.onerror = () => reject(new Error('Failed to load car image'));
+      bgImg.onerror = () => reject(new Error('Failed to load background image'));
+      
+      carImg.src = carPNG;
+      bgImg.src = backgroundImageUrl;
     } catch (error) {
       reject(error);
     }
@@ -83,9 +102,9 @@ export const compositeCarOnBackground = async (
  */
 export const createPreviewComposite = async (
   carPNG: string,
-  backgroundClass: string
+  backgroundImageUrl: string
 ): Promise<string> => {
-  return compositeCarOnBackground(carPNG, backgroundClass, {
+  return compositeCarOnBackground(carPNG, backgroundImageUrl, {
     scale: 1,
     shadow: true
   });
