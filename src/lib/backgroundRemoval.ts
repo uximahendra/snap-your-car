@@ -102,14 +102,19 @@ export const removeBackground = async (
     
     // Draw original image
     ctx.drawImage(imageElement, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
     onProgress?.('Creating mask...');
     
-    // Perform segmentation
-    const result = await pipeline(imageElement);
+    // Convert to data URL for the segmentation model
+    const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    
+    // Perform segmentation with data URL string
+    const result = await pipeline(imageDataUrl);
     
     onProgress?.('Removing background...');
+    
+    // Get image data for applying mask
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
     // Find the car/vehicle mask (usually labeled as 'car', 'vehicle', or similar)
     const carMask = result.find((r: any) => 
