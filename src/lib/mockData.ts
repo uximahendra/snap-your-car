@@ -52,6 +52,104 @@ export const backgrounds = [
 
 export const mockSessions: CarSession[] = [
   {
+    id: "s_mercedes_eqa_demo",
+    title: "Mercedes EQA Electric",
+    date: "2025-11-05",
+    mode: "exterior",
+    backgroundsRemoved: true,
+    showroomApplied: true,
+    images: [
+      {
+        id: "eqa_front",
+        angle: "Front",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/front.jpg",
+        after: "/demo-sessions/eqa-session/front.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/front.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 98
+      },
+      {
+        id: "eqa_front_left",
+        angle: "Front Left",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/front-left.jpg",
+        after: "/demo-sessions/eqa-session/front-left.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/front-left.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 97
+      },
+      {
+        id: "eqa_left",
+        angle: "Left",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/left.jpg",
+        after: "/demo-sessions/eqa-session/left.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/left.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 96
+      },
+      {
+        id: "eqa_rear_left",
+        angle: "Rear Left",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/rear-left.jpg",
+        after: "/demo-sessions/eqa-session/rear-left.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/rear-left.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 97
+      },
+      {
+        id: "eqa_rear",
+        angle: "Rear",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/rear.jpg",
+        after: "/demo-sessions/eqa-session/rear.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/rear.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 98
+      },
+      {
+        id: "eqa_rear_right",
+        angle: "Rear Right",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/rear-right.jpg",
+        after: "/demo-sessions/eqa-session/rear-right.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/rear-right.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 97
+      },
+      {
+        id: "eqa_right",
+        angle: "Right",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/right.jpg",
+        after: "/demo-sessions/eqa-session/right.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/right.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 96
+      },
+      {
+        id: "eqa_front_right",
+        angle: "Front Right",
+        status: "processed",
+        before: "/demo-sessions/eqa-session/front-right.jpg",
+        after: "/demo-sessions/eqa-session/front-right.jpg",
+        backgroundRemoved: "/demo-sessions/eqa-session/front-right.jpg",
+        showroomId: "white-column-studio",
+        showroomBackground: "/showroom-backgrounds/white-column-studio.jpg",
+        maskConfidence: 98
+      }
+    ]
+  },
+  {
     id: "s_bmw_8",
     title: "BMW 8 Series",
     date: "2025-10-15",
