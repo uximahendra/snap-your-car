@@ -150,63 +150,103 @@ export const mockSessions: CarSession[] = [
     ]
   },
   {
-    id: "s_bmw_8",
-    title: "BMW 8 Series",
-    date: "2025-10-15",
+    id: "s_mercedes_eqa_sport",
+    title: "Mercedes EQA Sport Edition",
+    date: "2025-11-03",
     mode: "exterior",
+    backgroundsRemoved: true,
+    showroomApplied: true,
     images: [
       {
-        id: "img1",
+        id: "eqa2_front",
         angle: "Front",
         status: "processed",
-        before: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop",
-        after: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop&sat=1.2&con=1.1",
-        background: "studio-white",
+        before: "/demo-sessions/session-2/front.jpg",
+        after: "/demo-sessions/session-2/front.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/front.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
+        maskConfidence: 97
+      },
+      {
+        id: "eqa2_front_left",
+        angle: "Front Left",
+        status: "processed",
+        before: "/demo-sessions/session-2/front-left.jpg",
+        after: "/demo-sessions/session-2/front-left.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/front-left.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
         maskConfidence: 98
       },
       {
-        id: "img2",
-        angle: "3/4 Front Left",
+        id: "eqa2_left",
+        angle: "Left",
         status: "processed",
-        before: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop",
-        after: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop&sat=1.2&con=1.1",
-        background: "studio-white",
+        before: "/demo-sessions/session-2/left.jpg",
+        after: "/demo-sessions/session-2/left.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/left.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
         maskConfidence: 96
       },
-    ]
-  },
-  {
-    id: "s_audi_rs",
-    title: "Audi RS6",
-    date: "2025-10-10",
-    mode: "exterior",
-    images: [
       {
-        id: "img3",
-        angle: "Front",
+        id: "eqa2_rear_left",
+        angle: "Rear Left",
         status: "processed",
-        before: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=800&h=600&fit=crop",
-        after: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?w=800&h=600&fit=crop&sat=1.2&con=1.1",
-        background: "luxury-showroom",
+        before: "/demo-sessions/session-2/rear-left.jpg",
+        after: "/demo-sessions/session-2/rear-left.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/rear-left.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
         maskConfidence: 97
       },
-    ]
-  },
-  {
-    id: "s_tesla_model",
-    title: "Tesla Model S",
-    date: "2025-10-05",
-    mode: "exterior",
-    images: [
       {
-        id: "img4",
-        angle: "Front",
-        status: "queued",
-        before: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
-        after: "",
+        id: "eqa2_rear",
+        angle: "Rear",
+        status: "processed",
+        before: "/demo-sessions/session-2/rear.jpg",
+        after: "/demo-sessions/session-2/rear.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/rear.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
+        maskConfidence: 98
       },
+      {
+        id: "eqa2_rear_right",
+        angle: "Rear Right",
+        status: "processed",
+        before: "/demo-sessions/session-2/rear-right.jpg",
+        after: "/demo-sessions/session-2/rear-right.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/rear-right.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
+        maskConfidence: 97
+      },
+      {
+        id: "eqa2_right",
+        angle: "Right",
+        status: "processed",
+        before: "/demo-sessions/session-2/right.jpg",
+        after: "/demo-sessions/session-2/right.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/right.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
+        maskConfidence: 96
+      },
+      {
+        id: "eqa2_front_right",
+        angle: "Front Right",
+        status: "processed",
+        before: "/demo-sessions/session-2/front-right.jpg",
+        after: "/demo-sessions/session-2/front-right.jpg",
+        backgroundRemoved: "/demo-sessions/session-2/front-right.jpg",
+        showroomId: "light-gray-studio",
+        showroomBackground: "/showroom-backgrounds/light-gray-studio.jpg",
+        maskConfidence: 98
+      }
     ]
-  },
+  }
 ];
 
 export const processingSteps = [
