@@ -113,36 +113,26 @@ export const removeBackground = async (
     
     onProgress?.('Removing background...');
     
+    // Check if we have valid segmentation results
+    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+      throw new Error('Invalid segmentation result');
+    }
+    
     // Get image data for applying mask
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Find the car/vehicle mask (usually labeled as 'car', 'vehicle', or similar)
-    const carMask = result.find((r: any) => 
-      r.label.toLowerCase().includes('car') || 
-      r.label.toLowerCase().includes('vehicle') ||
-      r.label.toLowerCase().includes('auto')
-    );
+    // Apply the mask to make background transparent
+    // The mask values range from 0 to 1, where higher values indicate the segmented object
+    const maskData = result[0].mask.data;
     
-    if (carMask && carMask.mask) {
-      // Apply the mask to make background transparent
-      const maskCanvas = document.createElement('canvas');
-      maskCanvas.width = canvas.width;
-      maskCanvas.height = canvas.height;
-      const maskCtx = maskCanvas.getContext('2d');
-      
-      if (maskCtx) {
-        maskCtx.drawImage(carMask.mask, 0, 0, canvas.width, canvas.height);
-        const maskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // Apply mask to original image (make non-car pixels transparent)
-        for (let i = 0; i < imageData.data.length; i += 4) {
-          const maskValue = maskData.data[i]; // Red channel of mask
-          imageData.data[i + 3] = maskValue; // Set alpha based on mask
-        }
-        
-        ctx.putImageData(imageData, 0, 0);
-      }
+    // Apply inverted mask to alpha channel (1 - value keeps the subject)
+    for (let i = 0; i < maskData.length; i++) {
+      // Invert the mask value to keep the subject instead of the background
+      const alpha = Math.round((1 - maskData[i]) * 255);
+      imageData.data[i * 4 + 3] = alpha;
     }
+    
+    ctx.putImageData(imageData, 0, 0);
     
     onProgress?.('Finalizing...');
     
