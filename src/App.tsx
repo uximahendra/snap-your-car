@@ -14,6 +14,8 @@ import EnhanceMulti from "./pages/EnhanceMulti";
 import SessionDetail from "./pages/SessionDetail";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import BackgroundRemovalProcessing from "./pages/BackgroundRemovalProcessing";
+import ShowroomSelection from "./pages/ShowroomSelection";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const AppContent = () => {
         <Route path="/view-360" element={<View360 />} />
         <Route path="/processing" element={<Processing />} />
         <Route path="/enhance-multi" element={<EnhanceMulti />} />
+        <Route path="/background-removal-processing" element={<BackgroundRemovalProcessing />} />
+        <Route path="/showroom-selection" element={<ShowroomSelection />} />
         <Route path="/session/:id" element={<SessionDetail />} />
         <Route path="/settings" element={<Settings />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

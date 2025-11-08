@@ -16,6 +16,9 @@ export interface CarImage {
   after: string;
   background?: string;
   maskConfidence?: number;
+  backgroundRemoved?: string;        // Transparent PNG after removal
+  showroomId?: string;               // Selected showroom background ID
+  showroomBackground?: string;       // Showroom background URL
 }
 
 export interface CarSession {
@@ -24,6 +27,8 @@ export interface CarSession {
   date: string;
   images: CarImage[];
   mode: "exterior" | "interior";
+  backgroundsRemoved?: boolean;      // Track if backgrounds removed
+  showroomApplied?: boolean;         // Track if showrooms applied
 }
 
 // All car angles combined (exterior + interior)

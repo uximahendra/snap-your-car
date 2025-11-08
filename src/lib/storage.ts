@@ -61,3 +61,39 @@ export const deleteSession = (id: string): void => {
 export const generateSessionId = (): string => {
   return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
+
+/**
+ * Update session with background removal status
+ */
+export const updateSessionBackgroundStatus = (
+  sessionId: string,
+  backgroundsRemoved: boolean,
+  showroomApplied?: boolean
+): void => {
+  try {
+    const sessions = getAllSessionsFromLocalStorage();
+    const updatedSessions = sessions.map(session => 
+      session.id === sessionId 
+        ? { ...session, backgroundsRemoved, showroomApplied: showroomApplied ?? session.showroomApplied }
+        : session
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSessions));
+  } catch (error) {
+    console.error('Error updating session background status:', error);
+  }
+};
+
+/**
+ * Update session completely
+ */
+export const updateSession = (session: CarSession): void => {
+  try {
+    const sessions = getAllSessionsFromLocalStorage();
+    const updatedSessions = sessions.map(s => 
+      s.id === session.id ? session : s
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSessions));
+  } catch (error) {
+    console.error('Error updating session:', error);
+  }
+};

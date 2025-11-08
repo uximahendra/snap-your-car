@@ -140,15 +140,30 @@ const SessionDetail = () => {
 
       {/* Fixed Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-10 shadow-[var(--elevation-4)]">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <Button 
-            size="lg" 
-            className="w-full"
-            aria-label="Export all photos"
-          >
-            <Download size={20} strokeWidth={2} />
-            <span className="ml-2">Export All Photos</span>
-          </Button>
+        <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
+          {/* Show Remove Backgrounds button if not processed yet */}
+          {!session.backgroundsRemoved && (
+            <Button 
+              size="lg" 
+              className="w-full"
+              onClick={() => navigate("/background-removal-processing", { state: { session } })}
+            >
+              <span className="mr-2">✨</span>
+              Remove Backgrounds & Enhance
+            </Button>
+          )}
+          
+          {/* Show Export button if backgrounds are removed */}
+          {session.backgroundsRemoved && (
+            <Button 
+              size="lg" 
+              className="w-full"
+              aria-label="Export all photos"
+            >
+              <Download size={20} strokeWidth={2} />
+              <span className="ml-2">Export All Photos</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>
