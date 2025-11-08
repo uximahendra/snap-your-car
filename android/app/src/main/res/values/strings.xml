@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Snap Your Car</string>
+    <string name="title_activity_main">Snap Your Car</string>
+    <string name="package_name">app.lovable.snapyourcar</string>
+    <string name="custom_url_scheme">app.lovable.snapyourcar</string>
+</resources>
