@@ -23,45 +23,38 @@ export const showroomBackgrounds: ShowroomBackground[] = [
     category: 'studio'
   },
   {
-    id: 'luxury-showroom',
-    name: 'Luxury Showroom',
-    thumbnail: '/showroom-backgrounds/luxury-showroom.jpg',
-    backgroundImage: '/showroom-backgrounds/luxury-showroom.jpg',
+    id: 'dark-gray-studio',
+    name: 'Dark Gray Studio',
+    thumbnail: '/showroom-backgrounds/dark-gray-studio.jpg',
+    backgroundImage: '/showroom-backgrounds/dark-gray-studio.jpg',
     category: 'studio'
   },
   {
-    id: 'urban-street',
-    name: 'Urban Street',
-    thumbnail: '/showroom-backgrounds/urban-street.jpg',
-    backgroundImage: '/showroom-backgrounds/urban-street.jpg',
-    category: 'urban'
+    id: 'light-gray-studio',
+    name: 'Light Gray Studio',
+    thumbnail: '/showroom-backgrounds/light-gray-studio.jpg',
+    backgroundImage: '/showroom-backgrounds/light-gray-studio.jpg',
+    category: 'studio'
   },
   {
-    id: 'nature-scene',
-    name: 'Nature Scene',
-    thumbnail: '/showroom-backgrounds/nature-scene.jpg',
-    backgroundImage: '/showroom-backgrounds/nature-scene.jpg',
-    category: 'nature'
+    id: 'beige-studio',
+    name: 'Beige Studio',
+    thumbnail: '/showroom-backgrounds/beige-studio.jpg',
+    backgroundImage: '/showroom-backgrounds/beige-studio.jpg',
+    category: 'studio'
   },
   {
-    id: 'night-city',
-    name: 'Night City',
-    thumbnail: '/showroom-backgrounds/night-city.jpg',
-    backgroundImage: '/showroom-backgrounds/night-city.jpg',
-    category: 'urban'
+    id: 'white-column-studio',
+    name: 'White Column Studio',
+    thumbnail: '/showroom-backgrounds/white-column-studio.jpg',
+    backgroundImage: '/showroom-backgrounds/white-column-studio.jpg',
+    category: 'studio'
   },
   {
-    id: 'race-track',
-    name: 'Race Track',
-    thumbnail: '/showroom-backgrounds/race-track.jpg',
-    backgroundImage: '/showroom-backgrounds/race-track.jpg',
-    category: 'track'
-  },
-  {
-    id: 'minimal-white',
-    name: 'Minimal White',
-    thumbnail: '/showroom-backgrounds/minimal-white.jpg',
-    backgroundImage: '/showroom-backgrounds/minimal-white.jpg',
+    id: 'dark-panel-studio',
+    name: 'Dark Panel Studio',
+    thumbnail: '/showroom-backgrounds/dark-panel-studio.jpg',
+    backgroundImage: '/showroom-backgrounds/dark-panel-studio.jpg',
     category: 'studio'
   }
 ];
