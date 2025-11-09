@@ -63,34 +63,6 @@ const Capture = () => {
         }
       }
       
-      // Request camera permission on native platforms
-      if (Capacitor.isNativePlatform()) {
-        console.log("📱 Native platform detected, checking permissions...");
-        
-        const permissionResult = await Camera.checkPermissions();
-        console.log("Permission status:", permissionResult);
-        
-        if (permissionResult.camera === 'denied') {
-          console.log("Requesting camera permission...");
-          const requestResult = await Camera.requestPermissions({ permissions: ['camera'] });
-          console.log("Permission request result:", requestResult);
-          
-          if (requestResult.camera === 'denied') {
-            setCameraError(
-              "Camera permission denied. Please:\n" +
-              "1. Go to Settings → Apps → Snap Your Car\n" +
-              "2. Tap Permissions\n" +
-              "3. Enable Camera\n" +
-              "4. Restart the app"
-            );
-            toast.error("Camera access denied - Check app settings");
-            return;
-          }
-        }
-        
-        console.log("✅ Camera permission granted");
-      }
-
       console.log("Starting getUserMedia...");
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -119,7 +91,11 @@ const Capture = () => {
       let errorMessage = "Unable to access camera. ";
       
       if (error.name === 'NotAllowedError') {
-        errorMessage += "Permission denied. Please allow camera access.";
+        errorMessage = "Camera permission denied. Please:\n" +
+          "1. Go to Settings → Apps → Snap Your Car\n" +
+          "2. Tap Permissions → Camera\n" +
+          "3. Select 'Allow'\n" +
+          "4. Return to the app and try again";
       } else if (error.name === 'NotFoundError') {
         errorMessage += "No camera found on this device.";
       } else if (error.name === 'NotReadableError') {

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
+import android.webkit.WebView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
@@ -13,6 +14,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
+    private PermissionRequest pendingPermissionRequest;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,18 +29,24 @@ public class MainActivity extends BridgeActivity {
         super.onStart();
         
         // Configure WebView settings for camera access
+        setupWebView();
+    }
+    
+    private void setupWebView() {
         if (this.bridge != null && this.bridge.getWebView() != null) {
-            WebSettings webSettings = this.bridge.getWebView().getSettings();
+            WebView webView = this.bridge.getWebView();
+            WebSettings webSettings = webView.getSettings();
             
-            // Enable camera/microphone access in WebView
+            // Enable ALL required settings
             webSettings.setJavaScriptEnabled(true);
             webSettings.setDomStorageEnabled(true);
             webSettings.setMediaPlaybackRequiresUserGesture(false);
             webSettings.setAllowFileAccess(true);
             webSettings.setAllowContentAccess(true);
+            webSettings.setDatabaseEnabled(true);
             
-            // Set custom WebChromeClient to grant WebView permissions
-            this.bridge.getWebView().setWebChromeClient(new WebChromeClient() {
+            // Set WebChromeClient to handle permission requests
+            webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public void onPermissionRequest(final PermissionRequest request) {
                     // Check if system permission is granted
@@ -50,10 +58,11 @@ public class MainActivity extends BridgeActivity {
                             request.grant(request.getResources());
                         });
                     } else {
-                        // Deny WebView request if system permission not granted
-                        MainActivity.this.runOnUiThread(() -> {
-                            request.deny();
-                        });
+                        // Store request and ask for system permission
+                        pendingPermissionRequest = request;
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.CAMERA},
+                                CAMERA_PERMISSION_REQUEST_CODE);
                     }
                 }
             });
@@ -75,9 +84,21 @@ public class MainActivity extends BridgeActivity {
         
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted - reload the page to trigger camera init again
+                // Permission granted - handle pending WebView request if any
+                if (pendingPermissionRequest != null) {
+                    pendingPermissionRequest.grant(pendingPermissionRequest.getResources());
+                    pendingPermissionRequest = null;
+                }
+                
+                // Reload the page to trigger camera init again
                 if (this.bridge != null && this.bridge.getWebView() != null) {
                     this.bridge.getWebView().reload();
+                }
+            } else {
+                // Permission denied - deny pending WebView request
+                if (pendingPermissionRequest != null) {
+                    pendingPermissionRequest.deny();
+                    pendingPermissionRequest = null;
                 }
             }
         }
