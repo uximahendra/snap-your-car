@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, Download, Save, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { backgrounds } from "@/lib/mockData";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ const EnhanceMulti = () => {
   const [sliderValue, setSliderValue] = useState([50]);
   const [selectedBg, setSelectedBg] = useState(backgrounds[0].id);
   const [watermark, setWatermark] = useState(true);
+  const [watermarkText, setWatermarkText] = useState("Snap Your Car");
   const [processing, setProcessing] = useState(false);
 
   // Color adjustments
@@ -81,7 +83,7 @@ const EnhanceMulti = () => {
           currentImage.originalImage,
           bgConfig,
           adjustments,
-          'Auto Studio',
+          watermarkText,
           watermark
         );
 
@@ -103,7 +105,7 @@ const EnhanceMulti = () => {
 
     const debounce = setTimeout(applyEnhancements, 300);
     return () => clearTimeout(debounce);
-  }, [selectedBg, saturation, brightness, contrast, warmth, watermark, currentIndex]);
+  }, [selectedBg, saturation, brightness, contrast, warmth, watermark, watermarkText, currentIndex]);
 
   const handleSave = () => {
     const sessionId = generateSessionId();
@@ -167,7 +169,7 @@ const EnhanceMulti = () => {
             img.originalImage,
             bgConfig,
             adjustments,
-            'Auto Studio',
+            watermarkText,
             watermark
           );
           return {
@@ -367,6 +369,19 @@ const EnhanceMulti = () => {
                 onCheckedChange={setWatermark}
               />
             </div>
+
+            {watermark && (
+              <div>
+                <Label htmlFor="watermark-text">Watermark Text</Label>
+                <Input
+                  id="watermark-text"
+                  value={watermarkText}
+                  onChange={(e) => setWatermarkText(e.target.value)}
+                  placeholder="Enter watermark text"
+                  className="mt-1"
+                />
+              </div>
+            )}
           </div>
         </div>
 

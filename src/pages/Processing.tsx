@@ -8,6 +8,8 @@ import { Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { processingSteps } from "@/lib/mockData";
 import { CarImage } from "@/lib/mockData";
 import { saveSessionToLocalStorage, generateSessionId } from "@/lib/storage";
+import { processImage } from "@/lib/backgroundRemoval";
+import { toast } from "sonner";
 
 interface CapturedAngle {
   angleId: string;
@@ -45,80 +47,121 @@ const Processing = () => {
   }, []);
 
   useEffect(() => {
-    if (currentAngleIndex >= capturedAngles.length) {
-      // All angles processed
-      setTimeout(() => {
-        navigate("/enhance-multi", {
-          state: {
-            enhancedImages,
-            mode
-          }
-        });
-      }, 500);
-      return;
-    }
-
-    const stepDuration = processingSteps[currentStep]?.duration || 1000;
-    const progressIncrement = 100 / (stepDuration / 100);
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + progressIncrement;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          if (currentStep < processingSteps.length - 1) {
-            setTimeout(() => {
-              setCurrentStep((prev) => prev + 1);
-              setProgress(0);
-            }, 200);
-          } else {
-            // Finished processing this angle
-            const currentAngle = capturedAngles[currentAngleIndex];
-            const enhanced: EnhancedAngle = {
-              id: `enhanced_${currentAngle.angleId}`,
-              angle: currentAngle.angleLabel,
-              status: 'processed' as const,
-              before: currentAngle.imageData,
-              after: currentAngle.imageData,
-              originalImage: currentAngle.imageData,
-              enhancedImage: currentAngle.imageData
-            };
-            
-            const updatedImages = [...enhancedImages, enhanced];
-            setEnhancedImages(updatedImages);
-            
-            // Auto-save to gallery when all angles are processed
-            if (currentAngleIndex === capturedAngles.length - 1) {
-              const sessionId = generateSessionId();
-              const sessionTitle = `${mode === 'exterior' ? 'Exterior' : 'Interior'} - ${new Date().toLocaleDateString()}`;
-              
-              const carSession = {
-                id: sessionId,
-                title: sessionTitle,
-                date: new Date().toISOString(),
-                images: updatedImages.map((img, idx) => ({
-                  ...img,
-                  id: `${sessionId}_img_${idx}`
-                })),
-                mode
-              };
-              
-              saveSessionToLocalStorage(carSession);
-            }
-            
-            setTimeout(() => {
-              setCurrentAngleIndex(prev => prev + 1);
-              setCurrentStep(0);
-              setProgress(0);
-            }, 300);
-          }
-          return 100;
+    const processImages = async () => {
+      if (currentAngleIndex >= capturedAngles.length) {
+        // All angles processed - save and navigate
+        if (enhancedImages.length > 0) {
+          const sessionId = generateSessionId();
+          const sessionTitle = `${mode === 'exterior' ? 'Exterior' : 'Interior'} - ${new Date().toLocaleDateString()}`;
+          
+          const carSession = {
+            id: sessionId,
+            title: sessionTitle,
+            date: new Date().toISOString(),
+            images: enhancedImages.map((img, idx) => ({
+              ...img,
+              id: `${sessionId}_img_${idx}`
+            })),
+            mode,
+            backgroundsRemoved: true
+          };
+          
+          saveSessionToLocalStorage(carSession);
+          toast.success("Session saved!");
         }
-        return newProgress;
-      });
-    }, 100);
+        
+        setTimeout(() => {
+          navigate("/enhance-multi", {
+            state: {
+              enhancedImages,
+              mode
+            }
+          });
+        }, 500);
+        return;
+      }
 
-    return () => clearInterval(interval);
+      const currentAngle = capturedAngles[currentAngleIndex];
+      
+      try {
+        // Step 1: Loading AI model
+        if (currentStep === 0) {
+          setProgress(30);
+          setTimeout(() => {
+            setCurrentStep(1);
+            setProgress(0);
+          }, 800);
+        }
+        
+        // Step 2: Detecting objects
+        else if (currentStep === 1) {
+          setProgress(60);
+          setTimeout(() => {
+            setCurrentStep(2);
+            setProgress(0);
+          }, 1000);
+        }
+        
+        // Step 3: Removing background (actual processing)
+        else if (currentStep === 2) {
+          setProgress(20);
+          
+          const processedImage = await processImage(
+            currentAngle.imageData,
+            (step: string) => {
+              console.log('Processing step:', step);
+              setProgress(prev => Math.min(prev + 20, 90));
+            }
+          );
+          
+          setProgress(100);
+          
+          const enhanced: EnhancedAngle = {
+            id: `enhanced_${currentAngle.angleId}`,
+            angle: currentAngle.angleLabel,
+            status: 'processed' as const,
+            before: currentAngle.imageData,
+            after: processedImage,
+            backgroundRemoved: processedImage,
+            originalImage: currentAngle.imageData,
+            enhancedImage: processedImage
+          };
+          
+          const updatedImages = [...enhancedImages, enhanced];
+          setEnhancedImages(updatedImages);
+          
+          setTimeout(() => {
+            setCurrentAngleIndex(prev => prev + 1);
+            setCurrentStep(0);
+            setProgress(0);
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Processing error:', error);
+        toast.error(`Failed to process ${currentAngle.angleLabel}`);
+        
+        // Continue with original image
+        const enhanced: EnhancedAngle = {
+          id: `enhanced_${currentAngle.angleId}`,
+          angle: currentAngle.angleLabel,
+          status: 'processed' as const,
+          before: currentAngle.imageData,
+          after: currentAngle.imageData,
+          originalImage: currentAngle.imageData,
+          enhancedImage: currentAngle.imageData
+        };
+        
+        setEnhancedImages(prev => [...prev, enhanced]);
+        
+        setTimeout(() => {
+          setCurrentAngleIndex(prev => prev + 1);
+          setCurrentStep(0);
+          setProgress(0);
+        }, 500);
+      }
+    };
+
+    processImages();
   }, [currentStep, currentAngleIndex, capturedAngles, navigate, enhancedImages, mode]);
 
   const angleProgress = capturedAngles.length > 0

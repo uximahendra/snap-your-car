@@ -5,6 +5,7 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, Camera, Sparkles, RotateCw } from "lucide-react";
+import { toast } from "sonner";
 
 interface CapturedAngle {
   angleId: string;
@@ -53,6 +54,12 @@ const AngleReview = () => {
   };
 
   const handleEnhanceAll = () => {
+    // Require minimum 3 angles before processing
+    if (capturedAngles.length < 3) {
+      toast.error("Capture at least 3 angles before enhancing");
+      return;
+    }
+    
     navigate('/processing', {
       state: {
         capturedAngles,

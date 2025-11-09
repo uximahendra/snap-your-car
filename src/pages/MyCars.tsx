@@ -11,6 +11,8 @@ import { mockSessions, mockUser } from "@/lib/mockData";
 import { getAllSessionsFromLocalStorage } from "@/lib/storage";
 import { PageTransition } from "@/components/PageTransition";
 import { MyCarsPageSkeleton } from "@/components/skeletons/MyCarsSkeletons";
+import { downloadAllAsZip } from "@/lib/imageProcessing";
+import { toast } from "sonner";
 
 const MyCars = () => {
   const navigate = useNavigate();
@@ -51,6 +53,24 @@ const MyCars = () => {
   const filteredSessions = localSessions.filter(session =>
     session.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleExport = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const session = localSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    const images = session.images.map(img => ({
+      imageUrl: img.after || img.before,
+      angle: img.angle
+    }));
+    
+    try {
+      await downloadAllAsZip(images, session.title);
+      toast.success("Exporting session...");
+    } catch (error) {
+      toast.error("Failed to export");
+    }
+  };
 
   if (isLoading) {
     return <MyCarsPageSkeleton />;
@@ -98,7 +118,15 @@ const MyCars = () => {
               <p className="text-body">No sessions found</p>
             </div>
           ) : (
-            filteredSessions.map((session) => (
+            filteredSessions.map((session) => {
+              const isDemo = mockSessions.some(ms => ms.id === session.id);
+              const formattedDate = new Date(session.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+              
+              return (
               <div key={session.id} className="bg-card rounded-2xl p-5 shadow-[var(--elevation-2)] hover:shadow-[var(--elevation-3)] transition-all duration-200 border border-border">
                 <div className="flex gap-4">
                   <div className="w-20 h-20 bg-muted rounded-xl overflow-hidden flex-shrink-0 ring-1 ring-border">
@@ -117,9 +145,16 @@ const MyCars = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-h3 mb-1 truncate">{session.title}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-h3 truncate">{session.title}</h3>
+                          {isDemo && (
+                            <Badge variant="outline" className="text-[10px] py-0 px-1.5 bg-primary/10 text-primary border-primary/20">
+                              Demo
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-caption text-muted-foreground">
-                          {session.date} • {session.images.length} photos
+                          {formattedDate} • {session.images.length} photos
                         </p>
                       </div>
                       <Badge
@@ -143,7 +178,12 @@ const MyCars = () => {
                         <Eye size={16} strokeWidth={2} />
                         <span className="ml-1.5">View</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={(e) => handleExport(session.id, e)}
+                      >
                         <Download size={16} strokeWidth={2} />
                         <span className="ml-1.5">Export</span>
                       </Button>
@@ -151,7 +191,8 @@ const MyCars = () => {
                   </div>
                 </div>
               </div>
-            ))
+            );
+            })
           )}
         </div>
       </div>

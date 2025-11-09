@@ -6,9 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Trash2 } from "lucide-react";
 import { mockSessions } from "@/lib/mockData";
-import { getSessionById } from "@/lib/storage";
+import { getSessionById, deleteSession } from "@/lib/storage";
 import { PageTransition } from "@/components/PageTransition";
 import { SessionDetailPageSkeleton } from "@/components/skeletons/SessionDetailSkeleton";
+import { downloadAllAsZip } from "@/lib/imageProcessing";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const SessionDetail = () => {
   const { id } = useParams();
@@ -50,6 +63,30 @@ const SessionDetail = () => {
     };
   }, []);
 
+  const handleExport = async () => {
+    if (!session) return;
+    
+    const images = session.images.map(img => ({
+      imageUrl: img.after || img.before,
+      angle: img.angle
+    }));
+    
+    try {
+      await downloadAllAsZip(images, session.title);
+      toast.success("Exporting session...");
+    } catch (error) {
+      toast.error("Failed to export session");
+    }
+  };
+
+  const handleDelete = () => {
+    if (!session || !id) return;
+    
+    deleteSession(id);
+    toast.success("Session deleted");
+    navigate("/my-cars", { replace: true });
+  };
+
   if (isLoading) {
     return <SessionDetailPageSkeleton />;
   }
@@ -69,6 +106,13 @@ const SessionDetail = () => {
     );
   }
 
+  const isDemo = mockSessions.some(ms => ms.id === session.id);
+  const formattedDate = new Date(session.date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   return (
     <PageTransition>
     <div className="min-h-screen bg-background pb-28">
@@ -84,19 +128,44 @@ const SessionDetail = () => {
             >
               <ArrowLeft size={22} strokeWidth={2} />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              aria-label="Delete session"
-            >
-              <Trash2 size={20} strokeWidth={2} />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  aria-label="Delete session"
+                >
+                  <Trash2 size={20} strokeWidth={2} />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Session?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all {session?.images.length} photos. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
           <div>
-            <h1 className="text-h2">{session.title}</h1>
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-h2">{session.title}</h1>
+              {isDemo && (
+                <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                  Demo
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <p className="text-body-sm text-muted-foreground">
-                {session.date} • {session.images.length} photos
+                {formattedDate} • {session.images.length} photos
               </p>
               <Badge
                 variant="secondary"
@@ -158,6 +227,7 @@ const SessionDetail = () => {
             <Button 
               size="lg" 
               className="w-full"
+              onClick={handleExport}
               aria-label="Export all photos"
             >
               <Download size={20} strokeWidth={2} />

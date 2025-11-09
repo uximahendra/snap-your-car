@@ -64,13 +64,20 @@ const Capture = () => {
       }
       
       console.log("Starting getUserMedia...");
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const constraints: MediaStreamConstraints = {
         video: { 
           facingMode: "environment",
           width: { ideal: 1920 },
           height: { ideal: 1080 }
-        },
-      });
+        } as MediaTrackConstraints,
+      };
+
+      // Add flash/torch constraint if flash is enabled
+      if (flash) {
+        (constraints.video as MediaTrackConstraints).advanced = [{ torch: true } as any];
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
       console.log("✅ Camera stream obtained successfully");
       streamRef.current = stream;
@@ -88,28 +95,22 @@ const Capture = () => {
         stack: error.stack
       });
       
-      let errorMessage = "Unable to access camera. ";
+      let errorMessage = "Camera access failed. ";
       
       if (error.name === 'NotAllowedError') {
-        errorMessage = "Camera permission denied. Please:\n" +
-          "1. Go to Settings → Apps → Snap Your Car\n" +
-          "2. Tap Permissions → Camera\n" +
-          "3. Select 'Allow'\n" +
-          "4. Return to the app and try again";
+        errorMessage = "Camera permission denied. Please allow camera access in your device settings.";
       } else if (error.name === 'NotFoundError') {
-        errorMessage += "No camera found on this device.";
+        errorMessage = "No camera detected on this device.";
       } else if (error.name === 'NotReadableError') {
-        errorMessage += "Camera is already in use by another app.";
-      } else {
-        errorMessage += error.message;
+        errorMessage = "Camera is in use by another app.";
       }
       
       setCameraError(errorMessage);
-      toast.error("Camera failed to start");
+      toast.error("Camera failed");
     }
   };
 
-  // Initialize camera on mount
+  // Initialize camera on mount and when flash changes
   useEffect(() => {
     initCamera();
 
@@ -123,7 +124,37 @@ const Capture = () => {
         ScreenOrientation.unlock().catch(console.warn);
       }
     };
-  }, []);
+  }, [flash]);
+
+  const handleUploadFromGallery = async () => {
+    try {
+      const photo = await Camera.pickImages({
+        quality: 90,
+        limit: 1
+      });
+      
+      if (photo.photos && photo.photos.length > 0) {
+        const imageData = photo.photos[0].webPath;
+        if (imageData) {
+          setCapturedImage(imageData);
+          setCaptured(true);
+          
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+          }
+          
+          if (Capacitor.isNativePlatform()) {
+            await ScreenOrientation.lock({ orientation: 'portrait' });
+          }
+          
+          toast.success("Photo loaded from gallery!");
+        }
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      toast.error("Failed to load from gallery");
+    }
+  };
 
   const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -417,7 +448,7 @@ const Capture = () => {
             variant="ghost" 
             size="icon" 
             className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)]"
-            onClick={() => toast.info("Upload from gallery")}
+            onClick={handleUploadFromGallery}
           >
             <Upload size={28} strokeWidth={2} />
           </Button>

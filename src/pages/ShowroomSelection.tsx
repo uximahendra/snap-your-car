@@ -9,6 +9,7 @@ import { showroomBackgrounds } from "@/lib/showroomBackgrounds";
 import { updateSession } from "@/lib/storage";
 import { toast } from "sonner";
 import { PageTransition } from "@/components/PageTransition";
+import { compositeCarOnBackground } from "@/lib/imageCompositing";
 
 const ShowroomSelection = () => {
   const navigate = useNavigate();
@@ -43,28 +44,52 @@ const ShowroomSelection = () => {
     return selectedBackgrounds[imageId] || showroomBackgrounds[0].id;
   };
 
-  const handleSave = () => {
-    // Update all images with their selected backgrounds
-    const updatedImages: CarImage[] = session.images.map(image => ({
-      ...image,
-      showroomId: getSelectedBackground(image.id),
-      showroomBackground: showroomBackgrounds.find(
-        bg => bg.id === getSelectedBackground(image.id)
-      )?.backgroundImage || showroomBackgrounds[0].backgroundImage
-    }));
-
-    const updatedSession: CarSession = {
-      ...session,
-      images: updatedImages,
-      showroomApplied: true
-    };
-
-    updateSession(updatedSession);
-    toast.success("Showroom backgrounds applied!");
+  const handleSave = async () => {
+    toast.info("Applying showroom backgrounds...");
     
-    setTimeout(() => {
-      navigate(`/session/${session.id}`, { replace: true });
-    }, 500);
+    try {
+      // Composite all images with backgrounds
+      const updatedImages: CarImage[] = await Promise.all(
+        session.images.map(async (image) => {
+          const bgId = getSelectedBackground(image.id);
+          const background = showroomBackgrounds.find(bg => bg.id === bgId);
+          
+          if (!background) return image;
+          
+          // Use background-removed image if available, otherwise use original
+          const carImage = image.backgroundRemoved || image.before;
+          
+          // Composite car onto showroom background
+          const composited = await compositeCarOnBackground(
+            carImage,
+            background.backgroundImage
+          );
+          
+          return {
+            ...image,
+            after: composited,
+            showroomId: bgId,
+            showroomBackground: background.backgroundImage
+          };
+        })
+      );
+
+      const updatedSession: CarSession = {
+        ...session,
+        images: updatedImages,
+        showroomApplied: true
+      };
+
+      updateSession(updatedSession);
+      toast.success("Showroom backgrounds applied!");
+      
+      setTimeout(() => {
+        navigate(`/session/${session.id}`, { replace: true });
+      }, 500);
+    } catch (error) {
+      console.error('Error applying backgrounds:', error);
+      toast.error("Failed to apply backgrounds");
+    }
   };
 
   const currentBackground = showroomBackgrounds.find(
