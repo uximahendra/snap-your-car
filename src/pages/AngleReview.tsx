@@ -75,7 +75,7 @@ const AngleReview = () => {
           </Button>
           <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
             <CheckCircle2 size={14} className="mr-1" />
-            {capturedAngles.length} of 7 captured
+            {capturedAngles.length} of 8 captured
           </Badge>
           <div className="w-8" />
         </div>
@@ -133,7 +133,7 @@ const AngleReview = () => {
           ))}
 
           {/* Empty slots */}
-          {Array.from({ length: 7 - capturedAngles.length }).map((_, index) => (
+          {Array.from({ length: 8 - capturedAngles.length }).map((_, index) => (
             <div
               key={`empty-${index}`}
               className="aspect-[4/3] relative rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center"
@@ -148,7 +148,7 @@ const AngleReview = () => {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-4">
-          {capturedAngles.length === 7 && (
+          {capturedAngles.length === 8 && (
             <Button
               size="lg"
               variant="outline"
@@ -182,9 +182,9 @@ const AngleReview = () => {
         </div>
 
         {/* Progress Info */}
-        {capturedAngles.length < 7 && (
+        {capturedAngles.length < 8 && (
           <div className="text-center text-sm text-muted-foreground">
-            {7 - capturedAngles.length} more {7 - capturedAngles.length === 1 ? 'angle' : 'angles'} remaining
+            {8 - capturedAngles.length} more {8 - capturedAngles.length === 1 ? 'angle' : 'angles'} remaining
           </div>
         )}
       </div>

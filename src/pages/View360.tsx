@@ -37,7 +37,7 @@ const View360 = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Sort angles in logical order for 360 rotation
-  const angleOrder = ['front', 'front-left', 'left', 'rear-left', 'rear', 'rear-right', 'front-right'];
+  const angleOrder = ['front', 'front-right', 'right', 'rear-right', 'rear', 'rear-left', 'left', 'front-left'];
   const sortedAngles = angleOrder
     .map(id => capturedAngles.find(a => a.angleId === id))
     .filter(Boolean) as CapturedAngle[];

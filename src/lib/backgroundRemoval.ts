@@ -125,10 +125,10 @@ export const removeBackground = async (
     // The mask values range from 0 to 1, where higher values indicate the segmented object
     const maskData = result[0].mask.data;
     
-    // Apply inverted mask to alpha channel (1 - value keeps the subject)
+    // Apply mask to alpha channel (keep the subject)
     for (let i = 0; i < maskData.length; i++) {
-      // Invert the mask value to keep the subject instead of the background
-      const alpha = Math.round((1 - maskData[i]) * 255);
+      // Higher mask values = subject, lower values = background
+      const alpha = Math.round(maskData[i] * 255);
       imageData.data[i * 4 + 3] = alpha;
     }
     
