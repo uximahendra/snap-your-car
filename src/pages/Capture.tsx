@@ -76,8 +76,14 @@ const Capture = () => {
           console.log("Permission request result:", requestResult);
           
           if (requestResult.camera === 'denied') {
-            setCameraError("Camera permission denied. Please enable camera access in your phone's settings.");
-            toast.error("Camera access denied");
+            setCameraError(
+              "Camera permission denied. Please:\n" +
+              "1. Go to Settings → Apps → Snap Your Car\n" +
+              "2. Tap Permissions\n" +
+              "3. Enable Camera\n" +
+              "4. Restart the app"
+            );
+            toast.error("Camera access denied - Check app settings");
             return;
           }
         }
