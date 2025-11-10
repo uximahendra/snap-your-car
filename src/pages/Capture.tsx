@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   X,
   Camera as CameraIcon,
-  Zap,
-  ZapOff,
   Upload,
   Sparkles,
   Sun,
@@ -15,7 +13,7 @@ import {
 } from "lucide-react";
 import { allAngles } from "@/lib/mockData";
 import { toast } from "sonner";
-import { Camera } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 
@@ -33,98 +31,22 @@ const Capture = () => {
   const retakeAngleId = location.state?.retakeAngleId;
   
   const [selectedAngle, setSelectedAngle] = useState(retakeAngleId || allAngles[0].id);
-  const [flash, setFlash] = useState(false);
   const [captured, setCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
   const [capturedAngles, setCapturedAngles] = useState<CapturedAngle[]>(existingAngles);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
-  // Initialize camera function (reusable)
-  const initCamera = async () => {
-    try {
-      console.log("🎥 Initializing camera...");
-      
-      // Stop existing stream if any
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      
-      // Lock to landscape orientation
-      if (Capacitor.isNativePlatform()) {
-        try {
-          await ScreenOrientation.lock({ orientation: 'landscape' });
-          console.log("✅ Screen locked to landscape");
-        } catch (error) {
-          console.warn("Could not lock orientation:", error);
-        }
-      }
-      
-      console.log("Starting getUserMedia...");
-      const constraints: MediaStreamConstraints = {
-        video: { 
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } as MediaTrackConstraints,
-      };
-
-      // Add flash/torch constraint if flash is enabled
-      if (flash) {
-        (constraints.video as MediaTrackConstraints).advanced = [{ torch: true } as any];
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      console.log("✅ Camera stream obtained successfully");
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        console.log("✅ Video stream set to video element");
-      }
-      
-      setCameraError(null);
-    } catch (error: any) {
-      console.error("❌ Camera error:", {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-      
-      let errorMessage = "Camera access failed. ";
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "Camera permission denied. Please allow camera access in your device settings.";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "No camera detected on this device.";
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = "Camera is in use by another app.";
-      }
-      
-      setCameraError(errorMessage);
-      toast.error("Camera failed");
-    }
-  };
-
-  // Initialize camera on mount and when flash changes
+  // Lock orientation to landscape on mount
   useEffect(() => {
-    initCamera();
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: 'landscape' }).catch(console.warn);
+    }
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      
-      // Unlock orientation on cleanup
       if (Capacitor.isNativePlatform()) {
         ScreenOrientation.unlock().catch(console.warn);
       }
     };
-  }, [flash]);
+  }, []);
 
   const handleUploadFromGallery = async () => {
     try {
@@ -138,10 +60,6 @@ const Capture = () => {
         if (imageData) {
           setCapturedImage(imageData);
           setCaptured(true);
-          
-          if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-          }
           
           if (Capacitor.isNativePlatform()) {
             await ScreenOrientation.lock({ orientation: 'portrait' });
@@ -157,37 +75,37 @@ const Capture = () => {
   };
 
   const handleCapture = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+      console.log("📸 Opening native camera...");
       
-      const imageData = canvas.toDataURL('image/jpeg', 0.9);
-      setCapturedImage(imageData);
-      setCaptured(true);
+      const photo = await Camera.getPhoto({
+        quality: 90,
+        source: CameraSource.Camera,
+        resultType: CameraResultType.DataUrl,
+        direction: CameraDirection.Rear,
+        allowEditing: false,
+        saveToGallery: false,
+        correctOrientation: true
+      });
       
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      
-      // Switch to portrait mode for preview
-      if (Capacitor.isNativePlatform()) {
-        try {
+      if (photo.dataUrl) {
+        console.log("✅ Photo captured successfully");
+        setCapturedImage(photo.dataUrl);
+        setCaptured(true);
+        
+        // Switch to portrait mode for preview
+        if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
-          console.log("✅ Screen locked to portrait for preview");
-        } catch (error) {
-          console.warn("Could not lock to portrait:", error);
         }
+        
+        toast.success("Photo captured!");
       }
+    } catch (error: any) {
+      console.error('❌ Camera error:', error);
       
-      toast.success("Photo captured!");
+      if (error.message !== 'User cancelled photos app') {
+        toast.error("Camera failed. Please try again.");
+      }
     }
   };
 
@@ -218,7 +136,6 @@ const Capture = () => {
       setSelectedAngle(nextAngle.id);
       setCaptured(false);
       setCapturedImage(null);
-      initCamera();
       toast.success(`${updatedAngles.length} of ${allAngles.length} captured!`);
     } else {
       navigate('/angle-review', {
@@ -285,7 +202,6 @@ const Capture = () => {
                 onClick={() => {
                   setCaptured(false);
                   setCapturedImage(null);
-                  initCamera();
                 }}
               >
                 Retake
@@ -306,28 +222,14 @@ const Capture = () => {
   }
 
   return (
-    <div className="h-screen w-screen bg-black flex flex-row relative overflow-hidden">
-      {/* Live camera feed */}
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="absolute inset-0 w-full h-full object-cover"
-      />
-      
-      {/* Hidden canvas for capture */}
-      <canvas ref={canvasRef} className="hidden" />
-      
-      {/* Error state */}
-      {cameraError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-700 z-30">
-          <div className="text-white/50 text-center px-4">
-            <CameraIcon size={64} className="mx-auto mb-4" />
-            <p className="text-sm">{cameraError}</p>
-          </div>
-        </div>
-      )}
+    <div className="h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-row relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }} />
+      </div>
 
       {/* Left Sidebar - Angle Selector */}
       <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4">
@@ -425,14 +327,7 @@ const Capture = () => {
             </Badge>
           </div>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-black/60 backdrop-blur-md text-white hover:bg-black/80 rounded-full w-12 h-12 shadow-[var(--elevation-3)]"
-            onClick={() => setFlash(!flash)}
-          >
-            {flash ? <Zap size={24} strokeWidth={2.5} /> : <ZapOff size={24} strokeWidth={2.5} />}
-          </Button>
+          <div className="w-12 h-12" />
         </div>
         
         {/* Hint */}
