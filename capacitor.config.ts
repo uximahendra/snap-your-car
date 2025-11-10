@@ -4,11 +4,9 @@ const config: CapacitorConfig = {
   appId: 'app.lovable.snapyourcar',
   appName: 'Snap Your Car',
   webDir: 'dist',
-  // server: {
-  //   url: 'https://0f00b5ea-324f-4141-b076-4fc14e1aa065.lovableproject.com?forceHideBadge=true',
-  //   cleartext: true,
-  //   androidScheme: 'https'
-  // },
+  server: {
+    androidScheme: 'https'
+  },
   android: {
     allowMixedContent: true
   },
