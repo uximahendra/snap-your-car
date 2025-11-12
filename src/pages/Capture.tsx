@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 import { allAngles } from "@/lib/mockData";
 import { toast } from "sonner";
-import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
+import { Camera } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { CameraPreview, CameraPreviewOptions } from '@capacitor-community/camera-preview';
 
 interface CapturedAngle {
   angleId: string;
@@ -34,19 +35,47 @@ const Capture = () => {
   const [captured, setCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [capturedAngles, setCapturedAngles] = useState<CapturedAngle[]>(existingAngles);
+  const [cameraActive, setCameraActive] = useState(false);
 
-  // Lock orientation to landscape on mount
+  // Start camera preview on mount
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: 'landscape' }).catch(console.warn);
-    }
+    const startCamera = async () => {
+      if (Capacitor.isNativePlatform() && !captured) {
+        try {
+          await ScreenOrientation.lock({ orientation: 'landscape' });
+          
+          const cameraPreviewOptions: CameraPreviewOptions = {
+            position: 'rear',
+            parent: 'cameraPreview',
+            className: 'cameraPreview',
+            toBack: true,
+            width: window.screen.width,
+            height: window.screen.height,
+            disableAudio: true,
+            lockAndroidOrientation: true,
+            rotateWhenOrientationChanged: false
+          };
+          
+          await CameraPreview.start(cameraPreviewOptions);
+          setCameraActive(true);
+          console.log("✅ Camera preview started in landscape");
+        } catch (error) {
+          console.error("❌ Failed to start camera:", error);
+          toast.error("Camera failed to start");
+        }
+      }
+    };
+
+    startCamera();
 
     return () => {
       if (Capacitor.isNativePlatform()) {
+        CameraPreview.stop().catch(console.warn);
         ScreenOrientation.unlock().catch(console.warn);
+        setCameraActive(false);
       }
     };
-  }, []);
+  }, [captured]);
 
   const handleUploadFromGallery = async () => {
     try {
@@ -76,24 +105,25 @@ const Capture = () => {
 
   const handleCapture = async () => {
     try {
-      console.log("📸 Opening native camera...");
+      console.log("📸 Capturing photo from preview...");
       
-      const photo = await Camera.getPhoto({
-        quality: 90,
-        source: CameraSource.Camera,
-        resultType: CameraResultType.DataUrl,
-        direction: CameraDirection.Rear,
-        allowEditing: false,
-        saveToGallery: false,
-        correctOrientation: true
+      const result = await CameraPreview.capture({
+        quality: 90
       });
       
-      if (photo.dataUrl) {
+      if (result.value) {
         console.log("✅ Photo captured successfully");
-        setCapturedImage(photo.dataUrl);
+        
+        // Stop camera preview
+        await CameraPreview.stop();
+        setCameraActive(false);
+        
+        // Convert base64 to data URL
+        const imageData = `data:image/jpeg;base64,${result.value}`;
+        setCapturedImage(imageData);
         setCaptured(true);
         
-        // Switch to portrait mode for preview
+        // Switch to portrait for preview
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: 'portrait' });
         }
@@ -101,11 +131,8 @@ const Capture = () => {
         toast.success("Photo captured!");
       }
     } catch (error: any) {
-      console.error('❌ Camera error:', error);
-      
-      if (error.message !== 'User cancelled photos app') {
-        toast.error("Camera failed. Please try again.");
-      }
+      console.error('❌ Camera capture error:', error);
+      toast.error("Failed to capture photo");
     }
   };
 
@@ -222,14 +249,8 @@ const Capture = () => {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-row relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
+    <div id="cameraPreview" className="h-screen w-screen flex flex-row relative overflow-hidden">
+      {/* Camera preview renders here as background (toBack: true) */}
 
       {/* Left Sidebar - Angle Selector */}
       <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4">
