@@ -53,7 +53,10 @@ const Capture = () => {
             height: window.screen.height,
             disableAudio: true,
             lockAndroidOrientation: true,
-            rotateWhenOrientationChanged: false
+            rotateWhenOrientationChanged: false,
+            enableHighResolution: true,
+            enableZoom: false,
+            disableExifHeaderStripping: false
           };
           
           await CameraPreview.start(cameraPreviewOptions);
@@ -105,34 +108,66 @@ const Capture = () => {
 
   const handleCapture = async () => {
     try {
-      console.log("📸 Capturing photo from preview...");
+      console.log("📸 STEP 1: Capture button clicked");
+      console.log("📸 STEP 2: Camera active?", cameraActive);
+      
+      if (!cameraActive) {
+        console.error("❌ Camera is not active!");
+        toast.error("Camera not ready. Please wait...");
+        return;
+      }
+      
+      console.log("📸 STEP 3: Calling CameraPreview.capture()...");
       
       const result = await CameraPreview.capture({
         quality: 90
       });
       
-      if (result.value) {
-        console.log("✅ Photo captured successfully");
-        
-        // Stop camera preview
+      console.log("📸 STEP 4: Capture result:", result);
+      console.log("📸 STEP 5: Result.value exists?", !!result.value);
+      console.log("📸 STEP 6: Result.value length:", result.value?.length || 0);
+      
+      if (!result.value || result.value === 'data:,' || result.value.length < 100) {
+        console.error("❌ Capture returned empty or invalid data:", result.value);
+        toast.error("Photo capture failed. Please try again.");
+        return;
+      }
+      
+      console.log("✅ STEP 7: Photo captured successfully");
+      
+      // Stop camera preview
+      await CameraPreview.stop();
+      setCameraActive(false);
+      console.log("✅ STEP 8: Camera preview stopped");
+      
+      // Convert base64 to data URL
+      const imageData = `data:image/jpeg;base64,${result.value}`;
+      setCapturedImage(imageData);
+      setCaptured(true);
+      
+      // Switch to portrait for preview
+      if (Capacitor.isNativePlatform()) {
+        await ScreenOrientation.lock({ orientation: 'portrait' });
+        console.log("✅ STEP 9: Orientation locked to portrait");
+      }
+      
+      toast.success("Photo captured!");
+      
+    } catch (error: any) {
+      console.error('❌ CAPTURE ERROR:', error);
+      console.error('❌ Error name:', error.name);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      
+      toast.error(`Capture failed: ${error.message || 'Unknown error'}`);
+      
+      // Try to restart camera if capture failed
+      try {
         await CameraPreview.stop();
         setCameraActive(false);
-        
-        // Convert base64 to data URL
-        const imageData = `data:image/jpeg;base64,${result.value}`;
-        setCapturedImage(imageData);
-        setCaptured(true);
-        
-        // Switch to portrait for preview
-        if (Capacitor.isNativePlatform()) {
-          await ScreenOrientation.lock({ orientation: 'portrait' });
-        }
-        
-        toast.success("Photo captured!");
+      } catch (stopError) {
+        console.error("Failed to stop camera after error:", stopError);
       }
-    } catch (error: any) {
-      console.error('❌ Camera capture error:', error);
-      toast.error("Failed to capture photo");
     }
   };
 
@@ -249,11 +284,13 @@ const Capture = () => {
   }
 
   return (
-    <div id="cameraPreview" className="h-screen w-screen flex flex-row relative overflow-hidden">
+    <div id="cameraPreview" className="h-screen w-screen fixed top-0 left-0 overflow-hidden" style={{ backgroundColor: 'transparent' }}>
       {/* Camera preview renders here as background (toBack: true) */}
 
-      {/* Left Sidebar - Angle Selector */}
-      <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4">
+      {/* UI Overlay Wrapper with pointer events management */}
+      <div className="absolute inset-0 flex flex-row pointer-events-none" style={{ zIndex: 9999 }}>
+        {/* Left Sidebar - Angle Selector */}
+        <div className="w-[20%] h-full bg-black/80 backdrop-blur-sm z-20 overflow-y-auto py-4 pointer-events-auto">
         <div className="flex flex-col gap-3 px-2">
           {allAngles.map((angle) => {
             const isCaptured = capturedAngles.some(a => a.angleId === angle.id);
@@ -265,10 +302,11 @@ const Capture = () => {
                 key={angle.id}
                 onClick={() => setSelectedAngle(angle.id)}
                 className={`
-                  relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all
+                  relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all pointer-events-auto cursor-pointer
                   ${isSelected ? 'border-primary scale-105 shadow-lg shadow-primary/50' : 'border-white/30'}
                   ${isCaptured ? 'ring-2 ring-green-500' : ''}
                 `}
+                style={{ zIndex: 10000 }}
               >
                 {/* SVG Preview Image */}
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900/70">
@@ -331,12 +369,13 @@ const Capture = () => {
         </div>
         
         {/* Top Header */}
-        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-20 pointer-events-auto">
           <Button
             variant="ghost"
             size="icon"
-            className="bg-black/60 backdrop-blur-md text-white hover:bg-black/80 rounded-full w-12 h-12 shadow-[var(--elevation-3)]"
+            className="bg-black/60 backdrop-blur-md text-white hover:bg-black/80 rounded-full w-12 h-12 shadow-[var(--elevation-3)] pointer-events-auto cursor-pointer"
             onClick={() => navigate("/my-cars")}
+            style={{ zIndex: 10000 }}
           >
             <X size={24} strokeWidth={2.5} />
           </Button>
@@ -358,13 +397,14 @@ const Capture = () => {
         </div>
         
         {/* Vertical Controls - Right Side */}
-        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20">
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-10 z-20 pointer-events-auto">
           {/* Upload Button - Top */}
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)]"
+            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)] pointer-events-auto cursor-pointer"
             onClick={handleUploadFromGallery}
+            style={{ zIndex: 10000 }}
           >
             <Upload size={28} strokeWidth={2} />
           </Button>
@@ -372,7 +412,8 @@ const Capture = () => {
           {/* Capture Button - Middle */}
           <button
             onClick={handleCapture}
-            className="w-24 h-24 rounded-full border-[6px] border-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-[var(--elevation-5)] active:scale-95 flex items-center justify-center"
+            className="w-24 h-24 rounded-full border-[6px] border-white bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all shadow-[var(--elevation-5)] active:scale-95 flex items-center justify-center pointer-events-auto cursor-pointer"
+            style={{ zIndex: 10000 }}
           >
             <div className="w-20 h-20 rounded-full bg-white" />
           </button>
@@ -381,13 +422,16 @@ const Capture = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)]"
+            className="text-white bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-full w-16 h-16 shadow-[var(--elevation-3)] pointer-events-auto cursor-pointer"
             onClick={handleReviewAll}
             disabled={capturedAngles.length === 0}
+            style={{ zIndex: 10000 }}
           >
             <span className="text-xl font-bold">{capturedAngles.length}</span>
           </Button>
         </div>
+      </div>
+      {/* End UI Overlay Wrapper */}
       </div>
     </div>
   );
