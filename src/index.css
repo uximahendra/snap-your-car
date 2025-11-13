@@ -1,3 +1,23 @@
+/* CRITICAL: Transparent background for CameraPreview plugin (toBack: true) */
+body,
+html {
+  background-color: transparent !important;
+}
+
+#root {
+  background-color: transparent !important;
+}
+
+/* Camera preview styling */
+.cameraPreview {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
