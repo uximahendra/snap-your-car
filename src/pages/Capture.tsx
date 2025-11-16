@@ -13,10 +13,9 @@ import {
 } from "lucide-react";
 import { allAngles } from "@/lib/mockData";
 import { toast } from "sonner";
-import { Camera } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, CameraDirection } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
-import { CameraPreview, CameraPreviewOptions } from '@capacitor-community/camera-preview';
 
 interface CapturedAngle {
   angleId: string;
@@ -35,47 +34,16 @@ const Capture = () => {
   const [captured, setCaptured] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [capturedAngles, setCapturedAngles] = useState<CapturedAngle[]>(existingAngles);
-  const [cameraActive, setCameraActive] = useState(false);
 
-  // Start camera preview on mount
+  // Lock to landscape on mount
   useEffect(() => {
-    const startCamera = async () => {
-      if (Capacitor.isNativePlatform() && !captured) {
-        try {
-          await ScreenOrientation.lock({ orientation: 'landscape' });
-          
-          const cameraPreviewOptions: CameraPreviewOptions = {
-            position: 'rear',
-            parent: 'cameraPreview',
-            className: 'cameraPreview',
-            toBack: true,
-            width: window.screen.width,
-            height: window.screen.height,
-            disableAudio: true,
-            lockAndroidOrientation: true,
-            rotateWhenOrientationChanged: false,
-            enableHighResolution: true,
-            enableZoom: false,
-            disableExifHeaderStripping: false
-          };
-          
-          await CameraPreview.start(cameraPreviewOptions);
-          setCameraActive(true);
-          console.log("✅ Camera preview started in landscape");
-        } catch (error) {
-          console.error("❌ Failed to start camera:", error);
-          toast.error("Camera failed to start");
-        }
-      }
-    };
-
-    startCamera();
+    if (Capacitor.isNativePlatform() && !captured) {
+      ScreenOrientation.lock({ orientation: 'landscape' }).catch(console.warn);
+    }
 
     return () => {
       if (Capacitor.isNativePlatform()) {
-        CameraPreview.stop().catch(console.warn);
         ScreenOrientation.unlock().catch(console.warn);
-        setCameraActive(false);
       }
     };
   }, [captured]);
@@ -108,65 +76,33 @@ const Capture = () => {
 
   const handleCapture = async () => {
     try {
-      console.log("📸 STEP 1: Capture button clicked");
-      console.log("📸 STEP 2: Camera active?", cameraActive);
+      console.log("📸 Opening native camera...");
       
-      if (!cameraActive) {
-        console.error("❌ Camera is not active!");
-        toast.error("Camera not ready. Please wait...");
-        return;
-      }
-      
-      console.log("📸 STEP 3: Calling CameraPreview.capture()...");
-      
-      const result = await CameraPreview.capture({
-        quality: 90
+      const photo = await Camera.getPhoto({
+        quality: 90,
+        source: CameraSource.Camera,
+        resultType: CameraResultType.DataUrl,
+        direction: CameraDirection.Rear,
+        allowEditing: false,
+        saveToGallery: false,
+        correctOrientation: true
       });
       
-      console.log("📸 STEP 4: Capture result:", result);
-      console.log("📸 STEP 5: Result.value exists?", !!result.value);
-      console.log("📸 STEP 6: Result.value length:", result.value?.length || 0);
-      
-      if (!result.value || result.value === 'data:,' || result.value.length < 100) {
-        console.error("❌ Capture returned empty or invalid data:", result.value);
-        toast.error("Photo capture failed. Please try again.");
-        return;
+      if (photo.dataUrl) {
+        console.log("✅ Photo captured successfully");
+        setCapturedImage(photo.dataUrl);
+        setCaptured(true);
+        
+        if (Capacitor.isNativePlatform()) {
+          await ScreenOrientation.lock({ orientation: 'portrait' });
+        }
+        
+        toast.success("Photo captured!");
       }
-      
-      console.log("✅ STEP 7: Photo captured successfully");
-      
-      // Stop camera preview
-      await CameraPreview.stop();
-      setCameraActive(false);
-      console.log("✅ STEP 8: Camera preview stopped");
-      
-      // Convert base64 to data URL
-      const imageData = `data:image/jpeg;base64,${result.value}`;
-      setCapturedImage(imageData);
-      setCaptured(true);
-      
-      // Switch to portrait for preview
-      if (Capacitor.isNativePlatform()) {
-        await ScreenOrientation.lock({ orientation: 'portrait' });
-        console.log("✅ STEP 9: Orientation locked to portrait");
-      }
-      
-      toast.success("Photo captured!");
-      
     } catch (error: any) {
-      console.error('❌ CAPTURE ERROR:', error);
-      console.error('❌ Error name:', error.name);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error stack:', error.stack);
-      
-      toast.error(`Capture failed: ${error.message || 'Unknown error'}`);
-      
-      // Try to restart camera if capture failed
-      try {
-        await CameraPreview.stop();
-        setCameraActive(false);
-      } catch (stopError) {
-        console.error("Failed to stop camera after error:", stopError);
+      console.error('❌ Camera error:', error);
+      if (error.message && !error.message.includes('cancelled')) {
+        toast.error(`Camera error: ${error.message}`);
       }
     }
   };
@@ -284,8 +220,8 @@ const Capture = () => {
   }
 
   return (
-    <div id="cameraPreview" className="h-screen w-screen fixed top-0 left-0 overflow-hidden" style={{ backgroundColor: 'transparent' }}>
-      {/* Camera preview renders here as background (toBack: true) */}
+    <div className="h-screen w-screen fixed top-0 left-0 overflow-hidden bg-background">
+      {/* No live preview - just UI with guide overlay */}
 
       {/* UI Overlay Wrapper with pointer events management */}
       <div className="absolute inset-0 flex flex-row pointer-events-none" style={{ zIndex: 9999 }}>
