@@ -48,8 +48,24 @@ const Capture = () => {
     };
   }, [captured]);
 
-  const handleUploadFromGallery = async () => {
+const handleUploadFromGallery = async () => {
     try {
+      console.log("📷 Checking photo permissions...");
+      
+      const permissions = await Camera.checkPermissions();
+      
+      if (permissions.photos !== 'granted') {
+        console.log("📷 Requesting photos permission...");
+        const newPermissions = await Camera.requestPermissions({ permissions: ['photos'] });
+        
+        if (newPermissions.photos !== 'granted') {
+          toast.error("Photo library access denied. Please enable it in settings.");
+          return;
+        }
+      }
+      
+      console.log("📷 Opening photo picker...");
+      
       const photo = await Camera.pickImages({
         quality: 90,
         limit: 1
@@ -68,14 +84,33 @@ const Capture = () => {
           toast.success("Photo loaded from gallery!");
         }
       }
-    } catch (error) {
-      console.error('Gallery error:', error);
-      toast.error("Failed to load from gallery");
+    } catch (error: any) {
+      console.error('❌ Gallery error:', error);
+      if (!error.message?.includes('cancelled')) {
+        toast.error("Failed to load from gallery");
+      }
     }
   };
 
-  const handleCapture = async () => {
+const handleCapture = async () => {
     try {
+      console.log("📸 Checking camera permissions...");
+      
+      // Check and request permissions first
+      const permissions = await Camera.checkPermissions();
+      console.log("📸 Current permissions:", permissions);
+      
+      if (permissions.camera !== 'granted') {
+        console.log("📸 Requesting camera permission...");
+        const newPermissions = await Camera.requestPermissions({ permissions: ['camera'] });
+        console.log("📸 New permissions:", newPermissions);
+        
+        if (newPermissions.camera !== 'granted') {
+          toast.error("Camera permission denied. Please enable it in settings.");
+          return;
+        }
+      }
+      
       console.log("📸 Opening native camera...");
       
       const photo = await Camera.getPhoto({
@@ -85,7 +120,10 @@ const Capture = () => {
         direction: CameraDirection.Rear,
         allowEditing: false,
         saveToGallery: false,
-        correctOrientation: true
+        correctOrientation: true,
+        promptLabelHeader: 'Take Photo',
+        promptLabelPhoto: 'From Gallery',
+        promptLabelPicture: 'Take Picture'
       });
       
       if (photo.dataUrl) {
@@ -101,8 +139,13 @@ const Capture = () => {
       }
     } catch (error: any) {
       console.error('❌ Camera error:', error);
-      if (error.message && !error.message.includes('cancelled')) {
-        toast.error(`Camera error: ${error.message}`);
+      
+      if (error.message?.includes('cancelled')) {
+        console.log("ℹ️ User cancelled camera");
+      } else if (error.message?.includes('permission')) {
+        toast.error("Camera permission required. Please enable in settings.");
+      } else {
+        toast.error(`Camera error: ${error.message || 'Unknown error'}`);
       }
     }
   };
